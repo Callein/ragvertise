@@ -1,7 +1,7 @@
-# RAGvertise Prototype
+# RAGvertise
 
 ## 1️⃣ 프로젝트 개요
-> 이 프로젝트는 FastAPI 기반으로 Ollama LLM (Mistral, OpenChat 3.5 등) 및 RAG 기반 검색을 활용한 광고사 추천 서비스의 프로토타입입니다.   
+> 이 프로젝트는 FastAPI 기반으로 Ollama LLM (Mistral, OpenChat 3.5 등) 및 RAG 기반 검색을 활용한 광고사 추천 서비스입니다.   
 DB는 MariaDB를 사용하며, 벡터 검색을 위해 FAISS 또는 Qdrant를 활용할 수 있습니다.
 
 ## 2️⃣ 설치 및 초기 설정
