@@ -1,9 +1,7 @@
-import json
-
 import ollama
 
-from schema.generate_dto import GenerateDTO
-from util.json_extractor import extract_json_from_response
+from app.schemas.generate_dto import GenerateDTO
+from app.util.json_extractor import extract_json_from_response
 
 
 class GenerateService:

@@ -4,10 +4,9 @@ import faiss
 import pickle
 from sentence_transformers import SentenceTransformer
 
-from model.tag_info import TagInfo
-from model.ptfo_info import PtfoInfo
-
-from util.database import *
+from app.models.tag_info import TagInfo
+from app.models.ptfo_info import PtfoInfo
+from app.core.database import SessionLocal
 
 
 def get_db():
@@ -77,7 +76,7 @@ def build_faiss_indices():
     }
 
     # 6. artifacts 폴더에 pickle 파일로 저장
-    artifacts_dir = "../artifacts"
+    artifacts_dir = "../../artifacts"
     os.makedirs(artifacts_dir, exist_ok=True)
     with open(os.path.join(artifacts_dir, "tag_embeddings.pkl"), "wb") as f:
         pickle.dump(tag_artifact, f)

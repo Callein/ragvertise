@@ -2,8 +2,8 @@ from typing import List
 
 from pydantic import BaseModel
 
-from schema.generate_dto import GenerateDTO
-from schema.search_dto import SearchDTO
+from app.schemas.generate_dto import GenerateDTO
+from app.schemas.search_dto import SearchDTO
 
 
 class RankDTO:

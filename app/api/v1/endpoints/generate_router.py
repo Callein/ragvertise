@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
-from schema.generate_dto import GenerateDTO
-from service.generate_service import GenerateService
+from app.schemas.generate_dto import GenerateDTO
+from app.services.generate_service import GenerateService
 
 generate_router = APIRouter()
 

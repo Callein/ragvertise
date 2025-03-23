@@ -1,8 +1,8 @@
-from typing import List, Dict, Any
+from typing import List
 
 from pydantic import BaseModel
 
-from schema.search_dto import SearchDTO
+from app.schemas.search_dto import SearchDTO
 
 
 class GenerateDTO:

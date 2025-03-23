@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String
 
-from util.database import Base
+from app.core.database import Base
 
 class PtfoInfo(Base):
     __tablename__ = "tb_ptfo_info"

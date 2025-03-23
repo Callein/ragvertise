@@ -4,7 +4,7 @@ from sqlalchemy.orm import declarative_base
 
 from dotenv import load_dotenv
 
-from constant.env_variables import EnvVariables
+from app.core.config import EnvVariables
 
 load_dotenv()
 

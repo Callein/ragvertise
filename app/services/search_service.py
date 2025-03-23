@@ -6,9 +6,9 @@ import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 
-from util.database import get_db
-from model.ptfo_tag_merged import PtfoTagMerged
-from schema.search_dto import SearchDTO
+from app.core.database import get_db
+from app.models.ptfo_tag_merged import PtfoTagMerged
+from app.schemas.search_dto import SearchDTO
 
 
 class SearchService:

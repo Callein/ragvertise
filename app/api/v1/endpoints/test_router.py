@@ -1,15 +1,15 @@
 import ollama
 from fastapi import APIRouter, HTTPException, Depends
 
-from schema.search_dto import SearchDTO
-from schema.test_dto import GenerateTestReqDTO
-from service.search_service import SearchService
-from util.database import get_db
+from app.schemas.search_dto import SearchDTO
+from app.schemas.test_dto import GenerateTestReqDTO
+from app.services.search_service import SearchService
+from app.core.database import get_db
 from sqlalchemy.orm import Session
 
-test_api_router = APIRouter()
+test_router = APIRouter()
 
-@test_api_router.get("/db_connection")
+@test_router.get("/db_connection")
 def test_db_connection(db: Session = Depends(get_db)):
     """
     DB 에 간단한 쿼리를 보내 DB 연결상태 확인
@@ -24,7 +24,7 @@ def test_db_connection(db: Session = Depends(get_db)):
 
 
 
-@test_api_router.post("/generate")
+@test_router.post("/generate")
 async def generate_text(request: GenerateTestReqDTO):
     """
     모델을 사용한 텍스트 생성 테스트
@@ -40,7 +40,7 @@ async def generate_text(request: GenerateTestReqDTO):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@test_api_router.post("/search_ptfo")
+@test_router.post("/search_ptfo")
 async def search_ptfo(request: SearchDTO.PtfoSearchReqDTO):
     try:
         return SearchService.ptfo_search(request)
