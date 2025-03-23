@@ -3,6 +3,7 @@ import json
 import ollama
 
 from schema.generate_dto import GenerateDTO
+from util.json_extractor import extract_json_from_response
 
 
 class GenerateService:
@@ -34,27 +35,33 @@ class GenerateService:
         """
 
         system_prompt = """
-        persona: 너는 유저의 광고 요청을 정리해주는 최고의 AI비서야.
-        instruction:
-             - 모든 답은 한국어로.
-             - 답변 방식은 JSON 형식으로.
-        JSON 필드:
-            tags: 입력된 텍스트에서 광고 카테고리 추출. 
-            summary: 키워드 위주로 요약.
-        태그종류:
-            홍보영상,행사 스케치,TV CF,관공서,앱/서비스,식음료,공간/인테리어,교육/기관,자동차,뷰티,의료/제약,음악/리드미컬,기록/정보전달,코믹/흥미유발,공감형성,신뢰형성,브랜딩,모션/인포그래픽,드론,배우/모델,숏폼,3D,제품/기술
+        너는 입력된 광고 요청 문장을 분석하여 JSON 형식의 결과만 출력하는 시스템이야.
+
+        🔒 주의사항:
+        - 출력은 반드시 JSON만! (다른 텍스트, 설명, 문장은 절대 포함하지 마)
+        - 예시:
+          {
+            "tags": [],
+            "summary": ""
+          }
+
+        필수 필드:
+        - tags: 광고 관련 태그 리스트 (반드시 태그 목록에서만 선택)
+        - summary: 한 문장 요약 (핵심 키워드 중심, 한국어로 작성)
+
+        태그 목록:
+        ["홍보영상", "행사 스케치", "TV CF", "관공서", "앱/서비스", "식음료", "공간/인테리어", "교육/기관" ,"자동차", "뷰티", "의료/제약", "음악/리드미컬", "기록/정보전달", "코믹/흥미유발", "공감형성", "신뢰형성", "브랜딩", "모션/인포그래픽", "드론", "배우/모델", "숏폼", "3D", "제품/기술"]
         """
 
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": request.user_prompt}
         ]
-        llm_resp  = ollama.chat(model="mistral", messages=messages)
+        llm_resp  = ollama.chat(model="llama3:8b", messages=messages)
+        llm_response_str = llm_resp["message"]["content"]
+        print(llm_response_str)
 
-        try:
-            llm_data = json.loads(llm_resp["message"]["content"])
-        except Exception as e:
-            raise Exception("LLM 응답 파싱 실패: " + str(e))
+        llm_data = extract_json_from_response(llm_response_str)
 
         tags = llm_data.get("tags", [])
         summary = llm_data.get("summary", "")
