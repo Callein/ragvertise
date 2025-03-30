@@ -22,8 +22,8 @@ class SearchService:
 
         동작 과정:
         1. artifacts 디렉토리의 "portfolio_embeddings.pkl" 파일에서 포폴 임베딩과 매핑 정보를 로드합니다.
-           - portfolio_embeddings: 각 포폴의 임베딩 벡터 (numpy array, shape: (N, d)).
-           - portfolio_data: 각 포폴의 상세 정보 (예: PTFO_SEQNO, PTFO_NM, PTFO_DESC 등).
+           - portfolio_embedding_vectors: 각 포폴의 임베딩 벡터 (numpy array, shape: (N, d)).
+           - portfolio_records: 각 포폴의 상세 정보 (예: PTFO_SEQNO, PTFO_NM, PTFO_DESC 등).
 
         2. 데이터베이스에서 tb_ptfo_tag_merged 테이블을 조회하여,
            각 포폴의 태그 목록을 매핑(딕셔너리) 형태로 생성합니다.
@@ -36,12 +36,12 @@ class SearchService:
                 - 사용자 입력 요약을 임베딩하고 정규화하여, 전체 포폴 임베딩과의 내적(유사도)을 계산합니다.
                 - 계산된 유사도를 기반으로 각 포폴의 텍스트 유사도 점수를 산출합니다.
 
-           3-2. 태그 유사도 계산 (포폴별 FAISS 사용):
-                - 사용자 요청에 태그가 존재하는 경우, 해당 태그들을 임베딩하고 정규화합니다.
-                - 각 포폴의 태그 리스트를 임베딩하여 FAISS 인덱스를 생성하고,
-                  각 사용자 태그와 포폴 태그 간 최고 유사도를 계산합니다.
-                - 임계값 이하의 유사도에는 벌점(penalty_factor)을 적용하여 조정한 후,
-                  평균 유사도를 산출해 각 포폴의 태그 유사도 점수를 결정합니다.
+           3-2. 태그 유사도 계산 (Top-K 평균 + 벌점 적용):
+                - 사용자 요청에 태그가 존재하는 경우, 각 태그를 임베딩하고 정규화합니다.
+                - 포폴별 태그 리스트를 임베딩하여 FAISS 인덱스를 구축한 후,
+                  사용자 태그 임베딩과의 Top-K 유사도를 계산합니다.
+                - 유사도가 임계값(penalty_threshold) 이하일 경우, 벌점(penalty_factor)을 적용하여 감점 처리합니다.
+                - 조정된 Top-K 유사도 점수의 평균값을 해당 포폴의 태그 유사도 점수로 사용합니다.
 
         4. 텍스트 유사도와 태그 유사도에 각각 가중치(alpha, beta)를 부여하여 최종 점수를 산출합니다.
 
@@ -59,11 +59,11 @@ class SearchService:
         """
         artifacts_dir = "./artifacts"
 
-        # 1. pickle 파일에서 포폴 임베딩 및 매핑 정보 로드
+        # 1. artifacts에서 포폴 임베딩 & 정보 로딩
         with open(os.path.join(artifacts_dir, "portfolio_embeddings.pkl"), "rb") as f:
             portfolio_artifact = pickle.load(f)
-        portfolio_embeddings = portfolio_artifact["embeddings"]  # numpy array, shape (N, d)
-        portfolio_data = portfolio_artifact["data"]  # 각 원소: dict {PTFO_SEQNO, PTFO_NM, PTFO_DESC}
+        portfolio_embedding_vectors = portfolio_artifact["embeddings"]  # numpy array, shape (N, d)
+        portfolio_records = portfolio_artifact["data"]  # 각 원소: dict {PTFO_SEQNO, PTFO_NM, PTFO_DESC}
 
         # 2. DB에서 tb_ptfo_tag_merged 테이블 조회하여 각 포폴의 태그 리스트 매핑 생성
         db = next(get_db())
@@ -79,90 +79,97 @@ class SearchService:
         # 3-1. 텍스트 유사도 계산 (FAISS)
         #############################
         # 포폴 임베딩 정규화
-        norm_portfolio_embeddings = portfolio_embeddings / np.linalg.norm(portfolio_embeddings, axis=1, keepdims=True)
-        d = norm_portfolio_embeddings.shape[1]
-        # FAISS 인덱스 (내적 기반 – 정규화된 벡터이면 내적=코사인 유사도)
+        norm_portfolio_embedding_vectors = portfolio_embedding_vectors / np.linalg.norm(portfolio_embedding_vectors, axis=1, keepdims=True)
+        d = norm_portfolio_embedding_vectors.shape[1]
+        # index_text: FAISS 인덱스 (내적 기반 – 정규화된 벡터이면 내적=코사인 유사도)
         index_text = faiss.IndexFlatIP(d)
-        index_text.add(norm_portfolio_embeddings)
+        index_text.add(norm_portfolio_embedding_vectors)
         # 사용자 입력 요약 임베딩(정규화)
-        summary_embedding = embedding_model.encode([request.summary], convert_to_numpy=True)
-        summary_embedding = summary_embedding / np.linalg.norm(summary_embedding, axis=1, keepdims=True)
-        # 전체 포폴에 대해 k = 전체 개수 검색
-        k_text = len(portfolio_data)
-        D_text, I_text = index_text.search(summary_embedding, k_text)
+        summary_vector = embedding_model.encode([request.summary], convert_to_numpy=True)
+        summary_vector = summary_vector / np.linalg.norm(summary_vector, axis=1, keepdims=True)
+        # k_text: 유사도를 계산할 개수. 포폴 전체 개수로 설정.
+        k_text = len(portfolio_records)
+        """
+        D_text: 유사도 점수 (Dintances, 코사인 유사도), I_text: 유사도 순으로 정렬된 인덱스
+        e.g.
+                D_text = [[0.95, 0.83, 0.74, ...]]
+                I_text = [[  3,    0,   12, ...]]
+        3번째 포트폴리오가 가장 유사함, 다음은 0번, 12번 ...
+        """
+        D_text, I_text = index_text.search(summary_vector, k_text)
+
         # 각 포폴의 텍스트 유사도 점수 배열 생성 (내적 값이 높을수록 유사)
-        text_similarities = np.zeros(len(portfolio_data))
+        text_similarity_scores = np.zeros(len(portfolio_records))
         for rank, idx in enumerate(I_text[0]):
-            text_similarities[idx] = D_text[0][rank]
+            text_similarity_scores[idx] = D_text[0][rank]
 
         #############################
-        # 3-2. 태그 유사도 계산 (각 포폴별로 FAISS 사용)
+        # 3-2. 태그 유사도 계산 (Top-K + 벌점)
         #############################
-        if request.tags:
-            query_tag_embeddings = embedding_model.encode(request.tags, convert_to_numpy=True)
-            query_tag_embeddings = query_tag_embeddings / np.linalg.norm(query_tag_embeddings, axis=1, keepdims=True)
-        else:
-            query_tag_embeddings = np.array([])
-
-        # 벌점 적용 파라미터, 임계값 이하이면 factor 만큼 가중 벌점 적용
+        tag_similarity_scores = []
+        top_k = 3
         penalty_threshold = 0.5
         penalty_factor = 3.0
 
-        tag_scores = []
-        for portfolio in portfolio_data:
+        if request.tags:
+            query_tag_vectors = embedding_model.encode(request.tags, convert_to_numpy=True)
+            query_tag_vectors = query_tag_vectors / np.linalg.norm(query_tag_vectors, axis=1, keepdims=True)
+        else:
+            query_tag_vectors = np.array([])
+
+        # 태그 유사도 계산 (Top-K 평균 + 벌점 적용)
+        for portfolio in portfolio_records:
             ptfo_seqno = portfolio["PTFO_SEQNO"]
             portfolio_tags = portfolio_tag_mapping.get(ptfo_seqno, [])
+            # 포폴에 태그가 없거나, 사용자 입력에 태그가 없으면 유사도 계산 불가 -> 0점
             if not portfolio_tags or len(request.tags) == 0:
-                tag_score = 0.0
-            else:
-                portfolio_tag_emb = embedding_model.encode(portfolio_tags, convert_to_numpy=True)
-                portfolio_tag_emb = portfolio_tag_emb / np.linalg.norm(portfolio_tag_emb, axis=1, keepdims=True)
-                d_tag = portfolio_tag_emb.shape[1]
-                index_tag = faiss.IndexFlatIP(d_tag)
-                index_tag.add(portfolio_tag_emb)
-                sims = []
-                for qt_emb in query_tag_embeddings:
-                    qt_emb = np.expand_dims(qt_emb, axis=0)
-                    D_tag, _ = index_tag.search(qt_emb, 1)  # k=1: 각 query tag 당 최고 유사도
-                    sim = D_tag[0][0]
-                    # 벌점 적용: 임계값 미만이면 벌점 차감
-                    if sim < penalty_threshold:
-                        sim_adjusted = sim - penalty_factor * (penalty_threshold - sim)
-                    else:
-                        sim_adjusted = sim
-                    sims.append(sim_adjusted)
-                tag_score = float(np.mean(sims))
-            tag_scores.append(tag_score)
-        tag_scores = np.array(tag_scores)
+                tag_similarity_scores.append(0.0)
+                continue
 
+            # 태그 임베딩 + 정규화
+            portfolio_tag_vectors = embedding_model.encode(portfolio_tags, convert_to_numpy=True)
+            portfolio_tag_vectors = portfolio_tag_vectors / np.linalg.norm(portfolio_tag_vectors, axis=1, keepdims=True)
+            d_tag = portfolio_tag_vectors.shape[1] # 태그 임베딩의 차원 수
+
+            # FAISS 인덱스 생성 (유사도 검색을 위함)
+            index_tag = faiss.IndexFlatIP(d_tag)
+            index_tag.add(portfolio_tag_vectors)
+
+            # 사용자 태그별로 유사도 측정
+            adjusted_similarities = []
+            for qt_emb in query_tag_vectors:
+                qt_emb = np.expand_dims(qt_emb, axis=0)
+                # D_tag: 태그 유사도 점수 리스트 (Top-K 개수 만큼), _: 유사한 태그의 인덱스는 쓰지 않으므로 버림.
+                D_tag, _ = index_tag.search(qt_emb, min(top_k, len(portfolio_tags)))
+
+                # 벌점 적용 - 유사도 점수가 너무 낮으면 감점
+                for sim in D_tag[0]:
+                    if sim < penalty_threshold:
+                        sim -= penalty_factor * (penalty_threshold - sim)
+                    adjusted_similarities.append(sim)
+
+            tag_similarity_scores.append(float(np.mean(adjusted_similarities)) if adjusted_similarities else 0.0)
+
+        tag_similarity_scores = np.array(tag_similarity_scores)
         #############################
         # 3-3. 최종 점수 산출 및 정렬
         #############################
-        alpha = 0.5
-        beta = 0.5
-        final_scores = alpha * text_similarities + beta * tag_scores
+        alpha, beta = 0.5, 0.5
+        final_scores = alpha * text_similarity_scores + beta * tag_similarity_scores
 
         results = []
-        for i, portfolio in enumerate(portfolio_data):
-            res = portfolio.copy()
-            res["text_score"] = float(text_similarities[i])
-            res["tag_score"] = float(tag_scores[i])
-            res["final_score"] = float(final_scores[i])
-            res["tags"] = portfolio_tag_mapping.get(portfolio["PTFO_SEQNO"], [])
-            results.append(res)
+        for i, portfolio in enumerate(portfolio_records):
+            results.append(
+                SearchDTO.PtfoSearchRespDTO(
+                    final_score=float(final_scores[i]),
+                    text_score=float(text_similarity_scores[i]),
+                    tag_score=float(tag_similarity_scores[i]),
+                    ptfo_seqno=portfolio["PTFO_SEQNO"],
+                    ptfo_nm=portfolio["PTFO_NM"],
+                    ptfo_desc=portfolio["PTFO_DESC"],
+                    tag_names=portfolio_tag_mapping.get(portfolio["PTFO_SEQNO"], [])
+                )
+            )
 
         # 최종 점수 내림차순 정렬
-        results_sorted = sorted(results, key=lambda x: x["final_score"], reverse=True)
-
-        ret: List[SearchDTO.PtfoSearchRespDTO] = []
-        for res in results_sorted:
-            ret.append(SearchDTO.PtfoSearchRespDTO(
-                final_score=res["final_score"],
-                text_score=res["text_score"],
-                tag_score=res["tag_score"],
-                ptfo_seqno=res["PTFO_SEQNO"],
-                ptfo_nm=res["PTFO_NM"],
-                ptfo_desc=res["PTFO_DESC"],
-                tag_names=res["tags"]
-            ))
-        return ret
+        return sorted(results, key=lambda x: x.final_score, reverse=True)
