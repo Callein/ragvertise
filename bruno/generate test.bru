@@ -1,0 +1,18 @@
+meta {
+  name: generate test
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://0.0.0.0:9000/api/v1/test/generate
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+      "system_prompt": "persona: 너는 유저의 광고 요청을 정리해주는 최고의 AI비서야.\n instruction: \n - 모든 답은 한국어로.\n- 답변 방식은 JSON 형식으로. 필드는 다음과 같다. \"tags\" : 입력된 텍스트에서 광고 카테고리 추출. \"summary\": 키워드 위주로 요약.\n태그종류 :홍보영상,행사 스케치,TV CF,관공서,앱/서비스,식음료,공간/인테리어,교육/기관,자동차,뷰티,의료/제약,음악/리드미컬,기록/정보전달,코믹/흥미유발,공감형성,신뢰형성,브랜딩,모션/인포그래픽,드론,배우/모델,숏폼,3D,제품/기술",
+      "user_prompt": "내가 먹는 유산균스틱을 새로 개발했는데, 이걸 유명인을 써서 광고하고 싶어. 속편해지는걸 강조하고싶어."
+  }
+}
