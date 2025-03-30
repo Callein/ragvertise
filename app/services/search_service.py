@@ -7,6 +7,7 @@ import faiss
 from sentence_transformers import SentenceTransformer
 
 from app.core.database import get_db
+from app.core.config import SearchConfig
 from app.models.ptfo_tag_merged import PtfoTagMerged
 from app.schemas.search_dto import SearchDTO
 
@@ -107,9 +108,9 @@ class SearchService:
         # 3-2. 태그 유사도 계산 (Top-K + 벌점)
         #############################
         tag_similarity_scores = []
-        top_k = 3
-        penalty_threshold = 0.5
-        penalty_factor = 3.0
+        top_k = SearchConfig.TAG_TOP_K
+        penalty_threshold = SearchConfig.TAG_SIM_THRESHOLD
+        penalty_factor = SearchConfig.TAG_PENALTY_FACTOR
 
         if request.tags:
             query_tag_vectors = embedding_model.encode(request.tags, convert_to_numpy=True)
@@ -154,7 +155,8 @@ class SearchService:
         #############################
         # 3-3. 최종 점수 산출 및 정렬
         #############################
-        alpha, beta = 0.5, 0.5
+        alpha = SearchConfig.ALPHA
+        beta = SearchConfig.BETA
         final_scores = alpha * text_similarity_scores + beta * tag_similarity_scores
 
         results = []

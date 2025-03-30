@@ -31,3 +31,10 @@ class EnvVariables:
             if key.endswith(postfix):
                 routes.append(value)
         return routes
+
+class SearchConfig:
+    ALPHA = float(os.getenv("SEARCH_ALPHA", 0.5))
+    BETA = float(os.getenv("SEARCH_BETA", 0.5))
+    TAG_TOP_K = int(os.getenv("TAG_TOP_K", 3))
+    TAG_SIM_THRESHOLD = float(os.getenv("TAG_SIM_THRESHOLD", 0.5))
+    TAG_PENALTY_FACTOR = float(os.getenv("TAG_PENALTY_FACTOR", 3.0))
