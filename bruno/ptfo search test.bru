@@ -1,0 +1,18 @@
+meta {
+  name: ptfo search test
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://0.0.0.0:9000/api/v1/test/search_ptfo
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "summary":"새로운 유산균스틱 제품에 대한 유명인 광고. 강조점: 속편해지는 것",
+    "tags": ["홍보영상", "제품/기술", "브랜딩", "신뢰형성"]
+  }
+}
