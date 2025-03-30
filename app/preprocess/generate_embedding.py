@@ -39,8 +39,27 @@ def build_faiss_indices():
     # 2. tb_ptfo_info: 포폴명과 포폴설명을 결합 후 전처리
 
     portfolios = db.query(PtfoInfo).all()
+
+    """
+    [03.03.2025 변경사항]
+    
+    all-MiniLM-L6-v2는 BERT 기반의 sentence-level semantic embedding 을 위해 훈련된 모델으로, 주로 전체 문장의 의미를 벡터로 표현하려는 목적이다.
+    
+    이 모델은 단어 단위나 문법적 구조보다는 "전체 문장이 어떤 의미를 전달하는가" 를 학습하며,
+    
+    `제목: ~, 설명: ~` 같은 템플릿은, 서로 다른 정보가 있음을 모델에게 명시적으로 알려주는 힌트가 된다.
+    
+    "제목"에 해당하는 단어가 앞에 오는 걸 반복적으로 학습하고, "설명"에는 길고 설명적인 문장이 따라오는 것을 익히게 된다.
+    
+    → 결과적으로 제목이 중요한 요소라는 걸 간접적으로 반영할 수 있다.
+    """
+    # portfolio_texts = [
+    #     preprocess_text(f"{ptfo.PTFO_NM} {ptfo.PTFO_DESC}")
+    #     for ptfo in portfolios if ptfo.PTFO_NM and ptfo.PTFO_DESC
+    # ]
+
     portfolio_texts = [
-        preprocess_text(f"{ptfo.PTFO_NM} {ptfo.PTFO_DESC}")
+        preprocess_text(f"제목: {ptfo.PTFO_NM}. 설명: {ptfo.PTFO_DESC}")
         for ptfo in portfolios if ptfo.PTFO_NM and ptfo.PTFO_DESC
     ]
 
