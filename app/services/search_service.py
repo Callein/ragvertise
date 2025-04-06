@@ -80,11 +80,17 @@ class SearchService:
         # 3-1. 텍스트 유사도 계산 (FAISS)
         #############################
         # 포폴 임베딩 정규화
-        norm_portfolio_embedding_vectors = portfolio_embedding_vectors / np.linalg.norm(portfolio_embedding_vectors, axis=1, keepdims=True)
-        d = norm_portfolio_embedding_vectors.shape[1]
-        # index_text: FAISS 인덱스 (내적 기반 – 정규화된 벡터이면 내적=코사인 유사도)
-        index_text = faiss.IndexFlatIP(d)
-        index_text.add(norm_portfolio_embedding_vectors)
+        # norm_portfolio_embedding_vectors = portfolio_embedding_vectors / np.linalg.norm(portfolio_embedding_vectors, axis=1, keepdims=True)
+        # d = norm_portfolio_embedding_vectors.shape[1]
+        # # index_text: FAISS 인덱스 (내적 기반 – 정규화된 벡터이면 내적=코사인 유사도)
+        # index_text = faiss.IndexFlatIP(d)
+        # index_text.add(norm_portfolio_embedding_vectors)
+
+        portfolio_index_path = os.path.join(artifacts_dir, "portfolio_index.faiss")
+        if not os.path.exists(portfolio_index_path):
+            raise FileNotFoundError(f"포폴 텍스트 인덱스가 존재하지 않습니다: {portfolio_index_path}")
+        portfolio_index = faiss.read_index(portfolio_index_path)
+
         # 사용자 입력 요약 임베딩(정규화)
         summary_vector = embedding_model.encode([request.summary], convert_to_numpy=True)
         summary_vector = summary_vector / np.linalg.norm(summary_vector, axis=1, keepdims=True)
@@ -97,7 +103,7 @@ class SearchService:
                 I_text = [[  3,    0,   12, ...]]
         3번째 포트폴리오가 가장 유사함, 다음은 0번, 12번 ...
         """
-        D_text, I_text = index_text.search(summary_vector, k_text)
+        D_text, I_text = portfolio_index.search(summary_vector, k_text)
 
         # 각 포폴의 텍스트 유사도 점수 배열 생성 (내적 값이 높을수록 유사)
         text_similarity_scores = np.zeros(len(portfolio_records))
