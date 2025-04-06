@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.core.config import SearchConfig
 from app.models.ptfo_tag_merged import PtfoTagMerged
 from app.schemas.search_dto import SearchDTO
+from app.utils.mmr_reranker import mmr_rerank
 
 
 class SearchService:
@@ -80,7 +81,7 @@ class SearchService:
         # 3-1. 텍스트 유사도 계산 (FAISS)
         #############################
         # 포폴 임베딩 정규화
-        # norm_portfolio_embedding_vectors = portfolio_embedding_vectors / np.linalg.norm(portfolio_embedding_vectors, axis=1, keepdims=True)
+        norm_portfolio_embedding_vectors = portfolio_embedding_vectors / np.linalg.norm(portfolio_embedding_vectors, axis=1, keepdims=True)
         # d = norm_portfolio_embedding_vectors.shape[1]
         # # index_text: FAISS 인덱스 (내적 기반 – 정규화된 벡터이면 내적=코사인 유사도)
         # index_text = faiss.IndexFlatIP(d)
@@ -179,5 +180,18 @@ class SearchService:
                 )
             )
 
-        # 최종 점수 내림차순 정렬
-        return sorted(results, key=lambda x: x.final_score, reverse=True)
+
+        # MMR 적용 여부 확인
+        if request.diversity:
+            selected_indices = mmr_rerank(
+                embeddings=norm_portfolio_embedding_vectors,
+                scores=final_scores,
+                k=20,
+                lambda_param=0.7  # relevance 우선
+            )
+            results_sorted = [results[i] for i in selected_indices]
+        else:
+            # 최종 점수 내림차순 정렬
+            results_sorted = sorted(results, key=lambda x: x.final_score, reverse=True)
+
+        return results_sorted
