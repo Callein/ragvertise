@@ -121,7 +121,7 @@ def build_faiss_indices():
 
 
 if __name__ == "__main__":
-    tag_index, portfolio_index, tag_texts, portfolio_texts = build_faiss_indices()
+    tag_index, portfolio_index, tag_artifact, portfolio_artifact = build_faiss_indices()
     print("태그 FAISS 인덱스 벡터 개수:", tag_index.ntotal)
     print("포폴 FAISS 인덱스 벡터 개수:", portfolio_index.ntotal)
 
