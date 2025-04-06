@@ -2,12 +2,17 @@ import re
 import os
 import faiss
 import pickle
+import logging
+
 from sentence_transformers import SentenceTransformer
 
 from app.models.tag_info import TagInfo
 from app.models.ptfo_info import PtfoInfo
 from app.core.database import SessionLocal
 from app.preprocess.text_cleaner import TextCleaner
+
+
+logger = logging.getLogger(__name__)
 
 def get_db():
     db = SessionLocal()
@@ -121,7 +126,8 @@ def build_faiss_indices():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     tag_index, portfolio_index, tag_artifact, portfolio_artifact = build_faiss_indices()
-    print("태그 FAISS 인덱스 벡터 개수:", tag_index.ntotal)
-    print("포폴 FAISS 인덱스 벡터 개수:", portfolio_index.ntotal)
+    logger.info(f"태그 FAISS 인덱스 벡터 개수: {tag_index.ntotal}")
+    logger.info(f"포폴 FAISS 인덱스 벡터 개수: {portfolio_index.ntotal}")
 
