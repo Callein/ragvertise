@@ -114,6 +114,13 @@ def build_faiss_indices():
     # 6. artifacts 폴더에 pickle 파일로 저장
     artifacts_dir = "../../artifacts"
     os.makedirs(artifacts_dir, exist_ok=True)
+
+    # FAISS 인덱스 파일 저장
+    faiss.write_index(tag_index, os.path.join(artifacts_dir, "tag_index.faiss"))
+    faiss.write_index(portfolio_index, os.path.join(artifacts_dir, "portfolio_index.faiss"))
+
+    logger.info("FAISS 인덱스 저장 완료")
+
     with open(os.path.join(artifacts_dir, "tag_embeddings.pkl"), "wb") as f:
         pickle.dump(tag_artifact, f)
     with open(os.path.join(artifacts_dir, "portfolio_embeddings.pkl"), "wb") as f:
