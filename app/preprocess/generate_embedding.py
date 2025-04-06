@@ -2,12 +2,17 @@ import re
 import os
 import faiss
 import pickle
+import logging
+
 from sentence_transformers import SentenceTransformer
 
 from app.models.tag_info import TagInfo
 from app.models.ptfo_info import PtfoInfo
 from app.core.database import SessionLocal
 from app.preprocess.text_cleaner import TextCleaner
+
+
+logger = logging.getLogger(__name__)
 
 def get_db():
     db = SessionLocal()
@@ -109,6 +114,13 @@ def build_faiss_indices():
     # 6. artifacts 폴더에 pickle 파일로 저장
     artifacts_dir = "../../artifacts"
     os.makedirs(artifacts_dir, exist_ok=True)
+
+    # FAISS 인덱스 파일 저장
+    faiss.write_index(tag_index, os.path.join(artifacts_dir, "tag_index.faiss"))
+    faiss.write_index(portfolio_index, os.path.join(artifacts_dir, "portfolio_index.faiss"))
+
+    logger.info("FAISS 인덱스 저장 완료")
+
     with open(os.path.join(artifacts_dir, "tag_embeddings.pkl"), "wb") as f:
         pickle.dump(tag_artifact, f)
     with open(os.path.join(artifacts_dir, "portfolio_embeddings.pkl"), "wb") as f:
@@ -121,7 +133,8 @@ def build_faiss_indices():
 
 
 if __name__ == "__main__":
-    tag_index, portfolio_index, tag_texts, portfolio_texts = build_faiss_indices()
-    print("태그 FAISS 인덱스 벡터 개수:", tag_index.ntotal)
-    print("포폴 FAISS 인덱스 벡터 개수:", portfolio_index.ntotal)
+    logging.basicConfig(level=logging.INFO)
+    tag_index, portfolio_index, tag_artifact, portfolio_artifact = build_faiss_indices()
+    logger.info(f"태그 FAISS 인덱스 벡터 개수: {tag_index.ntotal}")
+    logger.info(f"포폴 FAISS 인덱스 벡터 개수: {portfolio_index.ntotal}")
 

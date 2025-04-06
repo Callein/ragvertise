@@ -13,7 +13,7 @@ class RankService:
         """
 
         summary_serv_dto = GenerateService.generate_summary(request.to_summary_req_dto())
-        search_results = SearchService.ptfo_search(summary_serv_dto.to_ptfo_search_req_dto())
+        search_results = SearchService.ptfo_search(summary_serv_dto.to_ptfo_search_req_dto(request.diversity))
 
         return RankDTO.GetRankPtfoRespDTO(
             generated = summary_serv_dto,

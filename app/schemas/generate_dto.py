@@ -13,8 +13,9 @@ class GenerateDTO:
         summary: str
         tags: List[str]
 
-        def to_ptfo_search_req_dto(self) -> SearchDTO.PtfoSearchReqDTO:
+        def to_ptfo_search_req_dto(self, diversity) -> SearchDTO.PtfoSearchReqDTO:
             return SearchDTO.PtfoSearchReqDTO(
                 summary=self.summary,
                 tags=self.tags,
+                diversity=diversity,
             )

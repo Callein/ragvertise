@@ -5,6 +5,7 @@ class SearchDTO:
     class PtfoSearchReqDTO(BaseModel):
         summary: str
         tags: list
+        diversity: bool
 
     class PtfoSearchRespDTO(BaseModel):
         final_score: float
