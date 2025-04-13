@@ -9,7 +9,7 @@ from app.models.ptfo_tag_merged import PtfoTagMerged
 from app.core.database import SessionLocal
 from app.core.database import engine, Base
 
-# 테이블이 없으면 생성
+
 inspector = inspect(engine)
 if "tb_ptfo_tag_merged" not in inspector.get_table_names():
     print("tb_ptfo_tag_merged 테이블이 존재하지 않아 생성합니다.")
@@ -20,11 +20,9 @@ def populate_merged_table():
     db: Session = SessionLocal()
 
     try:
-        # 기존 merged 데이터 삭제
         db.query(PtfoTagMerged).delete()
         db.commit()
 
-        # 조인된 결과 생성
         joins = (
             db.query(
                 PtfoInfo.PTFO_SEQNO,
@@ -35,11 +33,10 @@ def populate_merged_table():
             )
             .join(PtfoTagMapp, PtfoInfo.PTFO_SEQNO == PtfoTagMapp.PTFO_SEQNO)
             .join(TagInfo, PtfoTagMapp.TAG_SEQNO == TagInfo.TAG_SEQNO)
-            .filter(PtfoTagMapp.TAG_DSP_YN == 'Y')  # 표출 대상만
+            .filter(PtfoTagMapp.TAG_DSP_YN == 'Y')
             .all()
         )
 
-        # merged 테이블에 insert
         for ptfo_seq, ptfo_nm, ptfo_desc, tag_seq, tag_nm in joins:
             merged = PtfoTagMerged(
                 PTFO_SEQNO=ptfo_seq,
