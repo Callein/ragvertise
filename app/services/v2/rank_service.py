@@ -9,7 +9,7 @@ class RankServiceV2:
     """
     광고 랭킹 서비스 (V2).
 
-    - 사용자의 입력 데이터를 바탕으로 광고 요소를 추출
+    - 사용자의 입력 데이터를 바탕으로 factor (desc, what, how, style) 를 추출
     - 검색 서비스를 통해 포트폴리오 랭킹 결과 반환
     """
 
@@ -25,7 +25,7 @@ class RankServiceV2:
             req (RankDTOV2.GetRankPtfoRequest): 사용자의 요청 데이터
 
         Returns:
-            RankDTOV2.GetRankPtfoResponse: 광고 요소 및 랭킹된 결과
+            RankDTOV2.GetRankPtfoResponse: factor (desc, what, how, style) 및 랭킹 결과
         """
         ad_element_req = req.to_ad_element_req_dto()
         ad_element_resp = ad_element_extractor_service_single_ton.extract_elements(ad_element_req)

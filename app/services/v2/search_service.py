@@ -19,15 +19,15 @@ class SearchServiceV2:
     """
     광고 검색 서비스 (V2).
 
-    각 factor별 임베딩 및 가중치를 사용하여 최종 유사도를 계산하고,
+    각 factor 별 임베딩 및 가중치를 사용하여 최종 유사도를 계산하고,
     MMR 옵션에 따라 다양한 결과를 제공한다.
-    - full, desc, how, style: SBERT로 유사도 계산
-    - what: fastText로 유사도 계산
+    - full, desc, how, style: SBERT 로 유사도 계산
+    - what: fastText 로 유사도 계산
     """
 
     def __init__(self):
         """
-        초기화: SBERT와 fastText 모델 및 각종 설정 로드.
+        초기화: SBERT와 fastText 모델 및 환경변수 로드.
         """
         self.embedding_model = SentenceTransformer(ModelConfig.EMBEDDING_MODEL)
         self.fasttext_model = fasttext.load_model(ModelConfig.WORD_EMBEDDING_MODEL_PATH)
