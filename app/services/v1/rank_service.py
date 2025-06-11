@@ -1,6 +1,6 @@
-from app.schemas.rank_dto import RankDTO
-from app.services.generate_service import GenerateService
-from app.services.search_service import SearchService
+from app.schemas.v1.rank_dto import RankDTO
+from app.services.v1.generate_service import GenerateService
+from app.services.v1.search_service import SearchService
 
 
 class RankService:

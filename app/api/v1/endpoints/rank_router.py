@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
-from app.schemas.rank_dto import RankDTO
-from app.services.rank_service import RankService
+from app.schemas.v1.rank_dto import RankDTO
+from app.services.v1.rank_service import RankService
 
 rank_router = APIRouter()
 

@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from app.schemas.search_dto import SearchDTO
+from app.schemas.v1.search_dto import SearchDTO
 
 
 class GenerateDTO:

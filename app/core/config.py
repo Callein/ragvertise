@@ -14,6 +14,8 @@ class EnvVariables:
     DB_CLASSNAME = os.getenv("DB_CLASSNAME")
     DB_PORT = os.getenv("DB_PORT")
 
+    EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL")
+
     @staticmethod
     def get_routes_by_prefix(prefix):
         """주어진 prefix로 시작하는 .env 값을 배열로 반환."""
