@@ -27,7 +27,7 @@ app.include_router(api_v2_router, prefix="/api/v2")
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to Ragvertise API"}
+    return {"message": "Welcome to RAGvertise API"}
 
 if __name__ == "__main__":
     import uvicorn
