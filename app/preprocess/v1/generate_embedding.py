@@ -113,7 +113,7 @@ def build_faiss_indices():
     }
 
     # 6. artifacts 폴더에 pickle 파일로 저장
-    artifacts_dir = f"../../artifacts/{ModelConfig.EMBEDDING_MODEL}"
+    artifacts_dir = f"../../artifacts/v1/{ModelConfig.EMBEDDING_MODEL}"
     os.makedirs(artifacts_dir, exist_ok=True)
 
     # FAISS 인덱스 파일 저장
