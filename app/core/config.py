@@ -43,7 +43,7 @@ class ModelConfig:
 
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     GEMINI_API_URL = os.getenv("GEMINI_API_URL")
-    LLM_API_REQUESTS_PER_MINUTE = os.getenv("LLM_API_REQUESTS_PER_MINUTE")
+    GEMINI_API_REQUESTS_PER_MINUTE = os.getenv("LLM_API_REQUESTS_PER_MINUTE")
 
 
 class SearchConfig:
