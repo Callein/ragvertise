@@ -14,12 +14,12 @@ class AdElementExtractorServiceV2:
     @staticmethod
     def extract_elements(req: AdElementDTOV2.AdElementRequest) -> AdElementDTOV2.AdElementResponse:
         system_prompt = (
-            "너는 광고 전문가야. 사용자 입력으로부터 아래 3가지를 추출해줘:\n"
-            "1) desc (유저가 요청한 광고에 대한 설명)"
-            "2) what (무엇을 광고하려는지)\n"
-            "3) how (어떤 매체/도구/방식으로 광고하는지)\n"
-            "4) style (광고의 톤/스타일)\n\n"
-            "아래 형식으로만 응답해줘 (JSON):\n"
+            "너는 광고 전문가야. 사용자 입력으로부터 아래 4가지를 추출해줘:\n"
+            "1) desc (유저가 요청한 광고에 대한 한 문장 요약/설명만. 브랜드명이나 특정 제품명은 포함하지마!)\n"
+            "2) what (한 단어로, 무엇을 광고하려는지, 중분류로. 브랜드명이나 특정 제품명은 빼고, 카테고리로만 적어.)\n"
+            "3) how (한 단어로, 어떤 매체/도구/방식으로 광고하는지. 브랜드명, 세부명칭 등은 제외해.)\n"
+            "4) style (한 단어로, 광고의 톤/스타일. 불필요한 세부내용이나 브랜드명은 제외해.)\n\n"
+            "브랜드명, 특정 회사명, 제품명 등은 절대 포함하지마. 아래 형식으로만 응답해:\n"
             '{"desc": "...", "what": "...", "how": "...", "style": "..."}'
         )
 
@@ -69,3 +69,5 @@ class AdElementExtractorServiceV2:
         except Exception as e:
             logger.warning(f"JSON 파싱 실패: {e}")
             return None
+
+ad_element_extractor_service_single_ton = AdElementExtractorServiceV2()
