@@ -18,7 +18,7 @@ class GeminiClient:
         self.client = genai.Client(api_key=ModelConfig.GEMINI_API_KEY)
         self.request_count = 0
         self.request_window_start = datetime.now(UTC)
-        self.max_requests_per_minute = ModelConfig.GEMINI_API_REQUESTS_PER_MINUTE
+        self.max_requests_per_minute = int(ModelConfig.GEMINI_API_REQUESTS_PER_MINUTE)
 
     def enforce_rate_limit(self):
         """
