@@ -34,6 +34,7 @@ class EnvVariables:
 
 class ModelConfig:
     EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL")
+    WORD_EMBEDDING_MODEL_PATH = os.getenv("WORD_EMBEDDING_MODEL_PATH")
 
     LLM_PROVIDER = os.getenv("LLM_PROVIDER")
 
@@ -53,6 +54,7 @@ class SearchConfig:
     TAG_TOP_K = int(os.getenv("TAG_TOP_K", 3))
     TAG_SIM_THRESHOLD = float(os.getenv("TAG_SIM_THRESHOLD", 0.5))
     TAG_PENALTY_FACTOR = float(os.getenv("TAG_PENALTY_FACTOR", 3.0))
+    FULL_WEIGHT = float(os.getenv("FULL_WEIGHT", 1.0))
     DESC_WEIGHT = float(os.getenv("DESC_WEIGHT", 1.0))
     WHAT_WEIGHT = float(os.getenv("WHAT_WEIGHT", 1.0))
     HOW_WEIGHT = float(os.getenv("HOW_WEIGHT", 1.0))
