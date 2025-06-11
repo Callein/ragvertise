@@ -1,4 +1,5 @@
-import json, re
+import json
+import re
 
 from app.core.config import ModelConfig
 from app.schemas.v2.ad_element_extractor_dto import AdElementDTOV2
@@ -9,10 +10,24 @@ logger = get_logger("AdElementExtractorServiceV2")
 
 
 class AdElementExtractorServiceV2:
+    """
+    Gemini API를 활용하여 factor (desc, what, how, style)를 추출하는 서비스 클래스.
+    """
+
+    # 최대 요청 재시도 횟수 (분당 요청 제한과 연계)
     MAX_RETRIES = int(ModelConfig.GEMINI_API_REQUESTS_PER_MINUTE)
 
     @staticmethod
     def extract_elements(req: AdElementDTOV2.AdElementRequest) -> AdElementDTOV2.AdElementResponse:
+        """
+        사용자 입력(prompt)을 바탕으로 factor 를 추출.
+
+        Args:
+            req (AdElementDTOV2.AdElementRequest): 사용자 요청 (prompt)
+
+        Returns:
+            AdElementDTOV2.AdElementResponse: 추출된 factor (desc, what, how, style)
+        """
         system_prompt = (
             "너는 광고 전문가야. 사용자 입력으로부터 아래 4가지를 추출해줘:\n"
             "1) desc (유저가 요청한 광고에 대한 한 문장 요약/설명만. 브랜드명이나 특정 제품명은 포함하지마!)\n"
@@ -30,7 +45,6 @@ class AdElementExtractorServiceV2:
             response_text = gemini.chat_completion(system_prompt, req.user_prompt)
             logger.info(f"[Gemini 응답] {response_text}")
 
-            # JSON 파싱 시도
             parsed = AdElementExtractorServiceV2._extract_json_from_response(response_text)
             if parsed:
                 return AdElementDTOV2.AdElementResponse(
@@ -42,25 +56,26 @@ class AdElementExtractorServiceV2:
             else:
                 logger.warning(f"Gemini 응답 파싱 실패 - {attempt}차 시도")
 
-        # 모든 시도 실패 시 기본 빈 값 반환
         logger.warning("Gemini 응답 파싱 실패 - 기본 빈 값 반환")
         return AdElementDTOV2.AdElementResponse(desc="", what="", how="", style="")
 
     @staticmethod
     def _extract_json_from_response(response_text: str) -> dict | None:
         """
-        마크다운 코드 블록이나 불필요한 텍스트를 제거하고 JSON만 추출.
-        :param response_text: LLM이 반환한 원본 응답
-        :return: JSON dict or None
+        LLM 응답으로부터 JSON만 추출 (마크다운 코드블록 제거 및 파싱).
+
+        Args:
+            response_text (str): LLM 응답 텍스트
+
+        Returns:
+            dict | None: JSON 딕셔너리 or None (파싱 실패시)
         """
         try:
-            # 마크다운 코드 블록 제거 (```json ... ```)
             if "```" in response_text:
                 code_blocks = re.findall(r"```(?:json)?(.*?)```", response_text, re.DOTALL)
                 if code_blocks:
                     response_text = code_blocks[0].strip()
 
-            # JSON 파싱
             parsed = json.loads(response_text)
             if isinstance(parsed, dict):
                 return parsed
@@ -70,4 +85,6 @@ class AdElementExtractorServiceV2:
             logger.warning(f"JSON 파싱 실패: {e}")
             return None
 
+
+# 싱글톤 인스턴스
 ad_element_extractor_service_single_ton = AdElementExtractorServiceV2()
