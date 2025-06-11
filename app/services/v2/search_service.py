@@ -113,7 +113,7 @@ class SearchServiceV2:
 
         # MMR 기반 다양성 처리
         if request.diversity:
-            mmr_embeddings = self._get_sbert_embedding(getattr(request, "full"))
+            mmr_embeddings = self._get_all_factor_embeddings(factor_names)
             selected_indices = mmr_rerank(
                 embeddings=mmr_embeddings,
                 scores=final_scores,
@@ -208,3 +208,27 @@ class SearchServiceV2:
             sim = cosine_similarity([query_vec], [target_vec])[0][0]
             similarities.append(sim)
         return np.array(similarities, dtype=np.float32)
+
+    def _get_all_factor_embeddings(self, factor_names: List[str]) -> np.ndarray:
+        """
+        factor별로 SBERT 임베딩만 모아서 평균 결합.
+
+        - "what" factor (fastText) 제외
+            - 차원이 다르기 때문
+        - (N, d) 형태로 반환.
+        """
+        sbert_factors = ["full", "desc", "how", "style"]
+        embeddings_list = []
+
+        for factor_name in sbert_factors:
+            embeddings, _ = self._load_factor_artifacts(factor_name)
+            embeddings_list.append(embeddings)
+
+        # (4, N, d) → (N, d)
+        avg_embeddings = np.mean(embeddings_list, axis=0)
+
+        # 정규화
+        norms = np.linalg.norm(avg_embeddings, axis=1, keepdims=True)
+        avg_embeddings = avg_embeddings / (norms + 1e-8)
+
+        return avg_embeddings
