@@ -16,17 +16,22 @@ from app.models.ptfo_tag_merged import PtfoTagMerged
 
 
 class SearchServiceV2:
+    """
+    광고 검색 서비스 (V2).
+
+    각 factor별 임베딩 및 가중치를 사용하여 최종 유사도를 계산하고,
+    MMR 옵션에 따라 다양한 결과를 제공한다.
+    - full, desc, how, style: SBERT로 유사도 계산
+    - what: fastText로 유사도 계산
+    """
+
     def __init__(self):
-        # 문장 임베딩용 SBERT
+        """
+        초기화: SBERT와 fastText 모델 및 각종 설정 로드.
+        """
         self.embedding_model = SentenceTransformer(ModelConfig.EMBEDDING_MODEL)
-
-        # FastText 로드
         self.fasttext_model = fasttext.load_model(ModelConfig.WORD_EMBEDDING_MODEL_PATH)
-
-        # SBERT artifacts 경로
         self.artifacts_dir = f"./artifacts/v2/{ModelConfig.EMBEDDING_MODEL}"
-
-        # factor별 가중치
         self.factor_weights = (
             SearchConfig.FULL_WEIGHT,
             SearchConfig.DESC_WEIGHT,
@@ -37,7 +42,10 @@ class SearchServiceV2:
         self.portfolio_tag_mapping = self._load_portfolio_tag_mapping()
 
     @staticmethod
-    def _load_portfolio_tag_mapping():
+    def _load_portfolio_tag_mapping() -> dict:
+        """
+        DB에서 PTFO_SEQNO별 태그 목록을 불러온다.
+        """
         db = next(get_db())
         rows = db.query(PtfoTagMerged).all()
         tag_mapping = {}
@@ -46,33 +54,40 @@ class SearchServiceV2:
         return tag_mapping
 
     def search(self, request: SearchDTOV2.SearchRequest) -> List[SearchDTOV2.SearchResponse]:
+        """
+        사용자의 검색 요청을 처리하고, 결과를 반환한다.
+
+        Args:
+            request: SearchDTOV2.SearchRequest (검색 요청)
+
+        Returns:
+            List[SearchDTOV2.SearchResponse]: 가중치 기반 정렬된 결과 목록
+        """
         factor_names = ["full", "desc", "what", "how", "style"]
         factor_scores = []
         factor_records = None
 
-        # Factor별 검색
+        # 각 factor별 유사도 계산
         for idx, factor_name in enumerate(factor_names):
             factor_embeddings, factor_records = self._load_factor_artifacts(factor_name)
 
             if factor_name == "what":
-                # what factor는 fastText 방식으로 유사도 계산
                 similarities = self._compute_word_similarities_with_fasttext(
                     getattr(request, factor_name), factor_records, factor_name
                 )
             else:
-                # SBERT 방식
                 query_embedding = self._get_sbert_embedding(getattr(request, factor_name))
                 similarities = self._compute_similarities(query_embedding, factor_embeddings)
 
             factor_scores.append(similarities)
 
-        # Factor별 가중치 결합
+        # 가중치 기반 최종 유사도 결합
         final_scores = sum(
             (w * s for w, s in zip(self.factor_weights, factor_scores)),
             start=np.zeros_like(factor_scores[0])
         )
 
-        # 결과 DTO 생성
+        # 최종 결과 생성
         results = []
         for idx, record in enumerate(factor_records):
             ptfo_seqno = record["PTFO_SEQNO"]
@@ -96,7 +111,7 @@ class SearchServiceV2:
                 )
             )
 
-        # MMR 옵션 처리
+        # MMR 기반 다양성 처리
         if request.diversity:
             mmr_embeddings = self._get_sbert_embedding(getattr(request, "full"))
             selected_indices = mmr_rerank(
@@ -112,30 +127,71 @@ class SearchServiceV2:
         return results_sorted
 
     def _load_factor_artifacts(self, factor_name: str):
+        """
+        factor별로 저장된 임베딩(pkl) 로드.
+
+        Args:
+            factor_name: factor 이름
+
+        Returns:
+            embeddings: np.ndarray
+            records: List[dict]
+        """
         pkl_path = os.path.join(self.artifacts_dir, f"{factor_name}_embeddings.pkl")
         with open(pkl_path, "rb") as f:
             artifact = pickle.load(f)
         return artifact["embeddings"], artifact["data"]
 
     def _get_sbert_embedding(self, text: str) -> np.ndarray:
+        """
+        SBERT 임베딩 계산 후 정규화.
+
+        Args:
+            text: 입력 텍스트
+
+        Returns:
+            정규화된 벡터 (np.ndarray)
+        """
         emb = self.embedding_model.encode([text], convert_to_numpy=True)
         return emb / np.linalg.norm(emb, axis=1, keepdims=True)
 
     @staticmethod
     def _compute_similarities(query_emb: np.ndarray, factor_embeddings: np.ndarray) -> np.ndarray:
+        """
+        코사인 유사도 (FAISS) 계산.
+
+        Args:
+            query_emb: 쿼리 임베딩
+            factor_embeddings: 데이터셋 임베딩
+
+        Returns:
+            유사도 배열 (np.ndarray)
+        """
         norm_factor_embeddings = factor_embeddings / np.linalg.norm(factor_embeddings, axis=1, keepdims=True)
         index = faiss.IndexFlatIP(norm_factor_embeddings.shape[1])
         index.add(norm_factor_embeddings)
         D, _ = index.search(query_emb, len(norm_factor_embeddings))
         return D.flatten()
 
-    def _compute_word_similarities_with_fasttext(self, query_text: str, factor_records: List[dict], factor_name: str) -> np.ndarray:
+    def _compute_word_similarities_with_fasttext(self, query_text: str, factor_records: List[dict],
+                                                  factor_name: str) -> np.ndarray:
+        """
+        fastText 기반으로 단어 평균 벡터의 유사도를 계산.
+
+        Args:
+            query_text: 쿼리 문자열
+            factor_records: 검색 대상 레코드
+            factor_name: 비교할 factor 이름
+
+        Returns:
+            유사도 배열 (np.ndarray)
+        """
         similarities = []
         query_words = query_text.split()
         if not query_words:
             return np.zeros(len(factor_records))
 
-        # 쿼리의 평균 벡터
+        # 쿼리 평균 벡터
         query_vecs = [self.fasttext_model.get_word_vector(w) for w in query_words]
         query_vec = np.mean(query_vecs, axis=0)
 
