@@ -5,14 +5,14 @@ meta {
 }
 
 post {
-  url: http://0.0.0.0:9000/api/v2/rank/portfolios
+  url: {{BASE_URL_LOCAL}}:{{PORT}}/api/v2/rank/portfolios
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "user_prompt": "내가 먹는 유산균스틱을 새로 개발했는데, 속편해지는걸 강조하고싶어.",
+    "user_prompt": "중장년 여성의 건강을 지켜주는 Y존 케어 유산균제품 광고를 만들고 싶어. 톤앤매너는 편안하고 따뜻하며, 제품의 신뢰성이나 자연스러운 케어 이미지를 살려서 광고를 기획했으면 좋겠어.",
     "diversity": false
   }
 }
