@@ -14,8 +14,6 @@ class EnvVariables:
     DB_CLASSNAME = os.getenv("DB_CLASSNAME")
     DB_PORT = os.getenv("DB_PORT")
 
-    EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL")
-
     @staticmethod
     def get_routes_by_prefix(prefix):
         """주어진 prefix로 시작하는 .env 값을 배열로 반환."""
@@ -33,6 +31,20 @@ class EnvVariables:
             if key.endswith(postfix):
                 routes.append(value)
         return routes
+
+class ModelConfig:
+    EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL")
+
+    LLM_PROVIDER = os.getenv("LLM_PROVIDER")
+
+    HUGGING_FACE_TOKEN = os.getenv("HUGGING_FACE_TOKEN")
+
+    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
+
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    GEMINI_API_URL = os.getenv("GEMINI_API_URL")
+    LLM_API_REQUESTS_PER_MINUTE = os.getenv("LLM_API_REQUESTS_PER_MINUTE")
+
 
 class SearchConfig:
     ALPHA = float(os.getenv("SEARCH_ALPHA", 0.5))

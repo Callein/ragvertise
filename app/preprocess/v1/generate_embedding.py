@@ -6,7 +6,7 @@ import logging
 
 from sentence_transformers import SentenceTransformer
 
-from app.core.config import EnvVariables
+from app.core.config import ModelConfig
 from app.models.tag_info import TagInfo
 from app.models.ptfo_info import PtfoInfo
 from app.core.database import SessionLocal
@@ -43,7 +43,7 @@ def get_db():
 
 def build_faiss_indices():
     # 임베딩 모델 초기화 (예: all-MiniLM-L6-v2)
-    embedding_model = SentenceTransformer(EnvVariables.EMBEDDING_MODEL)
+    embedding_model = SentenceTransformer(ModelConfig.EMBEDDING_MODEL)
 
     cleaner = TextCleaner()
 
@@ -113,7 +113,7 @@ def build_faiss_indices():
     }
 
     # 6. artifacts 폴더에 pickle 파일로 저장
-    artifacts_dir = f"../../artifacts/{EnvVariables.EMBEDDING_MODEL}"
+    artifacts_dir = f"../../artifacts/{ModelConfig.EMBEDDING_MODEL}"
     os.makedirs(artifacts_dir, exist_ok=True)
 
     # FAISS 인덱스 파일 저장
