@@ -6,11 +6,27 @@ from app.services.v2.search_service import SearchServiceV2
 
 
 class RankServiceV2:
+    """
+    광고 랭킹 서비스 (V2).
+
+    - 사용자의 입력 데이터를 바탕으로 광고 요소를 추출
+    - 검색 서비스를 통해 포트폴리오 랭킹 결과 반환
+    """
+
     def __init__(self):
         self.search_service = SearchServiceV2()
         self.cleaner = TextCleaner()
 
     def get_ranked_portfolios(self, req: RankDTOV2.GetRankPtfoRequest) -> RankDTOV2.GetRankPtfoResponse:
+        """
+        주어진 요청(req)을 기반으로 광고 포트폴리오를 순위별로 반환.
+
+        Args:
+            req (RankDTOV2.GetRankPtfoRequest): 사용자의 요청 데이터
+
+        Returns:
+            RankDTOV2.GetRankPtfoResponse: 광고 요소 및 랭킹된 결과
+        """
         ad_element_req = req.to_ad_element_req_dto()
         ad_element_resp = ad_element_extractor_service_single_ton.extract_elements(ad_element_req)
 
