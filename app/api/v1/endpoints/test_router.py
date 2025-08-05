@@ -1,9 +1,9 @@
 import ollama
 from fastapi import APIRouter, HTTPException, Depends
 
-from app.schemas.search_dto import SearchDTO
-from app.schemas.test_dto import GenerateTestReqDTO
-from app.services.search_service import SearchService
+from app.schemas.v1.search_dto import SearchDTO
+from app.schemas.v1.test_dto import GenerateTestReqDTO
+from app.services.v1.search_service import SearchService
 from app.core.database import get_db
 from sqlalchemy.orm import Session
 

@@ -7,9 +7,9 @@ import faiss
 from sentence_transformers import SentenceTransformer
 
 from app.core.database import get_db
-from app.core.config import SearchConfig
+from app.core.config import SearchConfig, ModelConfig
 from app.models.ptfo_tag_merged import PtfoTagMerged
-from app.schemas.search_dto import SearchDTO
+from app.schemas.v1.search_dto import SearchDTO
 from app.utils.mmr_reranker import mmr_rerank
 
 
@@ -59,7 +59,7 @@ class SearchService:
            - 각 객체는 최종 점수, 텍스트 유사도, 태그 유사도, 포폴 일련번호(PTFO_SEQNO), 포폴명(PTFO_NM),
              포폴 설명(PTFO_DESC), 그리고 해당 포폴에 매핑된 태그 리스트(tag_names)를 포함합니다.
         """
-        artifacts_dir = "./artifacts"
+        artifacts_dir = f"./artifacts/v1/{ModelConfig.EMBEDDING_MODEL}"
 
         # 1. artifacts에서 포폴 임베딩 & 정보 로딩
         with open(os.path.join(artifacts_dir, "portfolio_embeddings.pkl"), "rb") as f:
@@ -75,7 +75,7 @@ class SearchService:
             portfolio_tag_mapping.setdefault(row.PTFO_SEQNO, []).append(row.TAG_NM)
 
         # 3. 임베딩 모델 초기화 (텍스트 및 태그 모두 동일 모델 사용)
-        embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        embedding_model = SentenceTransformer(ModelConfig.EMBEDDING_MODEL)
 
         #############################
         # 3-1. 텍스트 유사도 계산 (FAISS)
