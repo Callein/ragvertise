@@ -1,1 +1,0 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/promptform.tsx","./src/components/ui/button.tsx","./src/components/ui/dialog.tsx","./src/modals/responsemodal.tsx","./src/pages/home.tsx","./src/pages/promptpage.tsx","./src/services/api.ts","./src/types/adelement.ts"],"version":"5.8.3"}
