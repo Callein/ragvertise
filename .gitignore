@@ -21,6 +21,7 @@ artifacts/*
 # Thumbnails
 ._*
 
+/frontend/eslint.config.js
 # frontend build
 /frontend/build
 /frontend/node_modules
