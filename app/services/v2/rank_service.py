@@ -50,7 +50,11 @@ class RankServiceV2:
     def _rank_with_ad_elements(
             self,
             ad_element_resp: AdElementDTOV2.AdElementResponse,
-            diversity: int
+    def _rank_with_ad_elements(
+            self,
+            ad_element_resp: AdElementDTOV2.AdElementResponse,
+            diversity: bool
+    ) -> RankDTOV2.GetRankPtfoResponse:
     ) -> RankDTOV2.GetRankPtfoResponse:
         """
         광고 요소(ad_element_resp)를 기반으로 포트폴리오를 검색하고 랭킹 결과를 반환합니다.
