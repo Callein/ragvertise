@@ -23,6 +23,7 @@ artifacts/*
 
 /frontend/eslint.config.js
 # frontend build
+*.tsbuildinfo
 /frontend/build
 /frontend/node_modules
 /frontend/.pnp
