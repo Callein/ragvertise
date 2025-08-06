@@ -19,3 +19,18 @@ class RankDTOV2:
     class GetRankPtfoResponse(BaseModel):
         generated: AdElementDTOV2.AdElementResponse
         search_results: List[SearchDTOV2.SearchResponse]
+
+    class GetRankPtfoByAdElementsRequest(BaseModel):
+        desc: str
+        what: str
+        how: str
+        style: str
+        diversity: bool = False
+
+        def to_ad_element_resp_dto(self) -> AdElementDTOV2.AdElementResponse:
+            return AdElementDTOV2.AdElementResponse(
+                desc=self.desc,
+                what=self.what,
+                how=self.how,
+                style=self.style,
+            )

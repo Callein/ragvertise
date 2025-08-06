@@ -21,6 +21,33 @@ artifacts/*
 # Thumbnails
 ._*
 
+/frontend/eslint.config.js
+# frontend build
+*.tsbuildinfo
+/frontend/build
+/frontend/node_modules
+/frontend/.pnp
+/frontend/.pnp.js
+/frontend/.next
+/frontend/.turbo
+/frontend/.cache
+
+# OS / Editor
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.idea
+.vscode
+*.log
+
+# npm / yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+
 # Files that might appear in the root of a volume
 .DocumentRevisions-V100
 .fseventsd
@@ -326,4 +353,4 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
-# End of https://www.toptal.com/developers/gitignore/api/python,pycharm,macos
+# End of https://www.toptal.com/developers/gitignore/api/python,pycharm,macos*.tsbuildinfo

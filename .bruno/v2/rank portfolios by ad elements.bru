@@ -1,0 +1,21 @@
+meta {
+  name: rank portfolios by ad elements
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_URL_LOCAL}}:{{PORT}}/api/v2/rank/portfolios/by-ad-elements
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "desc": "방문객이 직접 경험할 수 있는 공간의 생생한 현장감을 전달하여 몰입도 높은 체험을 유도하는 광고.",
+    "what": "체험",
+    "how": "영상",
+    "style": "역동적",
+    "diversity": false
+  }
+}
