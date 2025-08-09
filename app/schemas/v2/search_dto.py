@@ -10,6 +10,7 @@ class SearchDTOV2:
         what: str
         how: str
         style: str
+        limit: int
         diversity: bool = False
 
     class SearchResponse(BaseModel):

@@ -10,6 +10,7 @@ class RankDTOV2:
     class GetRankPtfoRequest(BaseModel):
         user_prompt: str
         diversity: Optional[bool] = False
+        limit: int = 5  # 보여 줄 상위 포트폴리오 개수
 
         def to_ad_element_req_dto(self) -> AdElementDTOV2.AdElementRequest:
             return AdElementDTOV2.AdElementRequest(
@@ -25,6 +26,7 @@ class RankDTOV2:
         what: str
         how: str
         style: str
+        limit: int = 5  # 보여 줄 상위 포트폴리오 개수
         diversity: bool = False
 
         def to_ad_element_resp_dto(self) -> AdElementDTOV2.AdElementResponse:
