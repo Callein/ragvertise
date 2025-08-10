@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{BASE_URL_LOCAL}}:{{PORT}}/api/v2/rank/portfolios/by-ad-elements
+  url: {{BASE_URL_LOCAL}}:{{PORT}}/api/v3/rank/portfolios/by-ad-elements
   body: json
   auth: inherit
 }
@@ -16,7 +16,7 @@ body:json {
     "what": "체험",
     "how": "영상",
     "style": "역동적",
-    "limit": 5,
-    "diversiy": false
+    "limit": 1,
+    "diversity": false
   }
 }
