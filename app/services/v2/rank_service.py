@@ -4,6 +4,9 @@ from app.schemas.v2.rank_dto import RankDTOV2
 from app.schemas.v2.search_dto import SearchDTOV2
 from app.services.v2.ad_element_extractor_service import ad_element_extractor_service_single_ton
 from app.services.v2.search_service import SearchServiceV2
+from app.utils.log_utils import get_logger
+
+logger = get_logger("RankServiceV2")
 
 
 class RankServiceV2:
@@ -13,6 +16,10 @@ class RankServiceV2:
     - 사용자의 입력 데이터를 바탕으로 factor (desc, what, how, style) 를 추출
     - 검색 서비스를 통해 포트폴리오 랭킹 결과 반환
     """
+
+    DEFAULT_LIMIT = 5   # 기본 개수
+    MAX_LIMIT = 50      # 최대 허용 개수
+
 
     def __init__(self):
         self.search_service = SearchServiceV2()
@@ -31,7 +38,8 @@ class RankServiceV2:
         ad_element_req = req.to_ad_element_req_dto()
         ad_element_resp = ad_element_extractor_service_single_ton.extract_elements(ad_element_req)
 
-        return self._rank_with_ad_elements(ad_element_resp, req.diversity)
+        limit = self._validate_limit(req.limit)
+        return self._rank_with_ad_elements(ad_element_resp, limit, req.diversity)
 
     def get_ranked_portfolios_by_ad_elements(self, req: RankDTOV2.GetRankPtfoByAdElementsRequest) -> RankDTOV2.GetRankPtfoResponse:
         """
@@ -45,12 +53,26 @@ class RankServiceV2:
             RankDTOV2.GetRankPtfoResponse: 생성된 광고 요소와 랭킹된 포트폴리오 리스트
         """
         ad_elements = req.to_ad_element_resp_dto()
-        return self._rank_with_ad_elements(ad_elements, req.diversity)
+        limit = self._validate_limit(req.limit)
+        return self._rank_with_ad_elements(ad_elements, limit, req.diversity)
 
+
+    def _validate_limit(self, limit: int) -> int:
+        """
+        limit 값의 유효성을 검사하고 기본/최대 제한을 적용.
+        """
+        if not isinstance(limit, int) or limit <= 0:
+            logger.warning(f"[RankServiceV2] 잘못된 limit 값({limit}) → 기본값 {self.DEFAULT_LIMIT} 적용")
+            return self.DEFAULT_LIMIT
+        if limit > self.MAX_LIMIT:
+            logger.warning(f"[RankServiceV2] limit({limit})이 최대값 초과 → {self.MAX_LIMIT}으로 제한")
+            return self.MAX_LIMIT
+        return limit
 
     def _rank_with_ad_elements(
             self,
             ad_element_resp: AdElementDTOV2.AdElementResponse,
+            limit: int,
             diversity: bool
     ) -> RankDTOV2.GetRankPtfoResponse:
         """
@@ -72,6 +94,7 @@ class RankServiceV2:
             what=ad_element_resp.what,
             how=ad_element_resp.how,
             style=ad_element_resp.style,
+            limit=limit,
             diversity=diversity
         )
 
