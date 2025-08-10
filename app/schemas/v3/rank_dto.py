@@ -3,10 +3,10 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from app.schemas.v2.ad_element_extractor_dto import AdElementDTOV2
-from app.schemas.v2.search_dto import SearchDTOV2
+from app.schemas.v3.search_dto import SearchDTOV3
 
 
-class RankDTOV2:
+class RankDTOV3:
     class GetRankPtfoRequest(BaseModel):
         user_prompt: str
         diversity: Optional[bool] = False
@@ -19,7 +19,7 @@ class RankDTOV2:
 
     class GetRankPtfoResponse(BaseModel):
         generated: AdElementDTOV2.AdElementResponse
-        search_results: List[SearchDTOV2.SearchResponse]
+        search_results: List[SearchDTOV3.SearchResponse]
 
     class GetRankPtfoByAdElementsRequest(BaseModel):
         desc: str

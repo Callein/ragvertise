@@ -1,0 +1,17 @@
+meta {
+  name: extract ad-element
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL_LOCAL}}:{{PORT}}/api/v3/ad-element/extract
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "user_prompt": "중장년 여성의 건강을 지켜주는 Y존 케어 유산균제품 광고를 만들고 싶어. 톤앤매너는 편안하고 따뜻하며, 제품의 신뢰성이나 자연스러운 케어 이미지를 살려서 광고를 기획했으면 좋겠어."
+  }
+}

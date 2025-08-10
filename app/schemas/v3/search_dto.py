@@ -1,9 +1,8 @@
-from typing import List
-
+from typing import List, Optional
 from pydantic import BaseModel
 
 
-class SearchDTOV2:
+class SearchDTOV3:
     class SearchRequest(BaseModel):
         full: str
         desc: str
@@ -28,3 +27,7 @@ class SearchDTOV2:
         ptfo_nm: str
         ptfo_desc: str
         tags: List[str]
+        view_lnk_url: Optional[str] = None
+        prdn_stdo_nm: Optional[str] = None
+        prdn_cost: Optional[float] = None
+        prdn_perd: Optional[str] = None

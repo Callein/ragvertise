@@ -72,7 +72,7 @@ def build_faiss_indices_v2():
             "PTFO_NM": data["PTFO_NM"],
             "PTFO_DESC": data["PTFO_DESC"],
             "tags": data["tags"],
-            "full": factors.desc,
+            "full": clean_full_text,
             "desc": factors.desc,
             "what": factors.what,
             "how": factors.how,
@@ -101,7 +101,8 @@ def build_faiss_indices_v2():
 
         # 정규화 및 contiguous
         embeddings = np.ascontiguousarray(embeddings)
-        embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
+        norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
+        embeddings = embeddings / (norms + 1e-8)
 
         # FAISS 인덱스
         index = faiss.IndexFlatIP(embeddings.shape[1])
