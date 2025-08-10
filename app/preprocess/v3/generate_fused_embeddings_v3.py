@@ -11,7 +11,7 @@ from app.core.config import ModelConfig, SearchConfig
 from app.preprocess.text_cleaner import TextCleaner
 from app.schemas.v2.ad_element_extractor_dto import AdElementDTOV2
 from app.services.v2.ad_element_extractor_service import ad_element_extractor_service_single_ton
-from app.services.v2.portfolio_service import PortFolioServiceV2
+from app.services.v3.portfolio_service import PortFolioServiceV3
 from app.utils.log_utils import get_logger
 
 logger = get_logger("generate_fused_embeddings_v3")
@@ -25,10 +25,10 @@ def _l2norm(x: np.ndarray, eps: float = 1e-8) -> np.ndarray:
 def build_fused_faiss_indices_v3():
     """
     factor별 임베딩을 만들고, √가중치로 스케일한 뒤 CONCAT하여 단일(fused) 인덱스를 생성.
-    또한 기존 factor별 임베딩/메타도 그대로 저장하여, 온라인에서 factor별 스코어 계산에 사용.
+    또한 factor별 임베딩/메타를 함께 저장하여 온라인에서 component score 및 메타 노출에 사용.
     """
     db = next(get_db())
-    data_list = PortFolioServiceV2.load_portfolio_data(db)
+    data_list = PortFolioServiceV3.load_portfolio_data(db)
 
     embedding_model = SentenceTransformer(ModelConfig.EMBEDDING_MODEL)
     ft = fasttext.load_model(ModelConfig.WORD_EMBEDDING_MODEL_PATH)
@@ -48,6 +48,12 @@ def build_fused_faiss_indices_v3():
     records = []
 
     for data in data_list:
+        # 메타 필드: MV(또는 info)에서 끌어온 값을 사용
+        view_url     = data.get("VIEW_LNK_URL")
+        studio_name  = data.get("PRDN_STDO_NM")
+        prod_cost    = data.get("PRDN_COST")
+        prod_period  = data.get("PRDN_PERD")
+
         input_text = f"제목: {data['PTFO_NM']}. 설명: {data['PTFO_DESC']}. 태그: {', '.join(data['tags'])}"
         factors = ad_element_extractor_service_single_ton.extract_elements(
             AdElementDTOV2.AdElementRequest(user_prompt=input_text)
@@ -60,16 +66,22 @@ def build_fused_faiss_indices_v3():
         full_text = f"desc: {factors.desc}. what: {factors.what}. how: {factors.how}. style: {factors.style}"
         factor_texts["full"].append(cleaner.clean(full_text))
 
+        # artifacts에 저장할 레코드(검색 응답에서 메타 노출용)
         records.append({
-            "PTFO_SEQNO": data["PTFO_SEQNO"],
-            "PTFO_NM": data["PTFO_NM"],
-            "PTFO_DESC": data["PTFO_DESC"],
-            "tags": data["tags"],
-            "full": factor_texts["full"][-1],
-            "desc": factor_texts["desc"][-1],
-            "what": factor_texts["what"][-1],
-            "how": factor_texts["how"][-1],
-            "style": factor_texts["style"][-1],
+            "PTFO_SEQNO":   data["PTFO_SEQNO"],
+            "PTFO_NM":      data["PTFO_NM"],
+            "PTFO_DESC":    data["PTFO_DESC"],
+            "tags":         data["tags"],
+            "full":         factor_texts["full"][-1],
+            "desc":         factor_texts["desc"][-1],
+            "what":         factor_texts["what"][-1],
+            "how":          factor_texts["how"][-1],
+            "style":        factor_texts["style"][-1],
+            # 추가 메타
+            "VIEW_LNK_URL": view_url,
+            "PRDN_STDO_NM": studio_name,
+            "PRDN_COST":    prod_cost,
+            "PRDN_PERD":    prod_period,
         })
 
     artifacts_dir = f"../../../artifacts/v3/{ModelConfig.EMBEDDING_MODEL}"
@@ -93,9 +105,10 @@ def build_fused_faiss_indices_v3():
         else:
             embs = embedding_model.encode(texts, convert_to_numpy=True).astype(np.float32)
 
-        embs = _l2norm(np.ascontiguousarray(embs))  # L2 정규화 (직선 거리 기반 단위벡터화)
+        embs = _l2norm(np.ascontiguousarray(embs))  # L2 정규화
         factor_embs[f] = embs
 
+        # factor별 파일 저장 (메타 포함)
         with open(os.path.join(artifacts_dir, f"{f}_embeddings.pkl"), "wb") as pf:
             pickle.dump({"embeddings": embs, "data": records}, pf)
 
@@ -108,6 +121,7 @@ def build_fused_faiss_indices_v3():
     scaled = [factor_embs[f] * sqrt_w[f] for f in FACTOR_ORDER]  # 각 (N, d_f)
     fused = np.concatenate(scaled, axis=1).astype(np.float32)    # (N, sum d_f)
 
+    # fused 인덱스 저장
     fused_index = faiss.IndexFlatIP(fused.shape[1])
     fused_index.add(fused)
     faiss.write_index(fused_index, os.path.join(artifacts_dir, "fused_index.faiss"))
