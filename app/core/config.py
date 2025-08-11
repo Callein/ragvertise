@@ -61,5 +61,5 @@ class SearchConfig:
     STYLE_WEIGHT = float(os.getenv("STYLE_WEIGHT", 1.0))
 
 class RankConfig:
-    MIN_CANDIDATE_TOP_STDO = int(os.getenv("MIN_CANDIDATE_TOP_STDO", 30))
+    MIN_CANDIDATE_TOP_STDO_K = int(os.getenv("MIN_CANDIDATE_TOP_STDO_K", 30))
     TOP_STDO_K = int(os.getenv("TOP_STDO_K", 5))
