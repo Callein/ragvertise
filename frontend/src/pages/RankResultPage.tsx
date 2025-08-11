@@ -1,11 +1,22 @@
+// src/pages/RankResultPage.tsx
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   getRankedPortfoliosByAdElements,
+  createProductionExample,
+} from "@/services/api";
+
+import type {
   AdElementsRequest,
+} from "@/services/api";
+import type {
   RankResponseV3,
   SearchResultV3,
-} from "@/services/api";
+  ProductionExampleRequest,
+  ProductionExampleResponse,
+} from "@/types/production";
+
+import ProductionExampleModal from "@/modals/ProductionExampleModal";
 
 export default function RankResultPage() {
   const location = useLocation();
@@ -16,18 +27,22 @@ export default function RankResultPage() {
   const [loading, setLoading] = useState(false);
   const [showFormula, setShowFormula] = useState(false);
 
+  // 작업지시서 모달
+  const [exampleOpen, setExampleOpen] = useState(false);
+  const [exampleText, setExampleText] = useState("");
+  const [exampleLoading, setExampleLoading] = useState(false);
+
   useEffect(() => {
     if (!state) {
       navigate("/");
       return;
     }
-    const fetchData = async () => {
+    (async () => {
       setLoading(true);
       try {
         const res = await getRankedPortfoliosByAdElements({
           ...state,
           diversity: state.diversity ?? false,
-          // limit: state.limit ?? 5, // 필요 시 사용
         });
         setData(res);
       } catch (err) {
@@ -35,9 +50,29 @@ export default function RankResultPage() {
       } finally {
         setLoading(false);
       }
-    };
-    fetchData();
+    })();
   }, [state, navigate]);
+
+  const makeExample = async () => {
+    if (!data) return;
+    try {
+      setExampleLoading(true);
+      const payload: ProductionExampleRequest = {
+        generated: data.generated,
+        search_results: data.search_results, // types/production.ts의 SearchResultV3[]
+        top_studios: data.top_studios,
+        candidate_size: data.candidate_size,
+      };
+      const res: ProductionExampleResponse = await createProductionExample(payload);
+      setExampleText(res.example || "");
+      setExampleOpen(true);
+    } catch (e) {
+      console.error(e);
+      alert("작업지시서 예시 생성에 실패했어요. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setExampleLoading(false);
+    }
+  };
 
   if (loading) return <div className="p-4 text-gray-600">불러오는 중…</div>;
   if (!data) return <div className="p-4 text-red-500">데이터 없음</div>;
@@ -51,9 +86,19 @@ export default function RankResultPage() {
         >
           📊 점수 산정 방식 및 요소 설명 보기
         </button>
-        <button onClick={() => navigate("/")} className="text-sm text-blue-600 hover:underline">
-          ⬅ 홈으로 돌아가기
-        </button>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={makeExample}
+            disabled={exampleLoading}
+            className="text-sm bg-indigo-600 text-white px-3 py-2 rounded disabled:opacity-60"
+          >
+            {exampleLoading ? "생성 중…" : "📝 작업지시서 예시 생성"}
+          </button>
+          <button onClick={() => navigate("/")} className="text-sm text-blue-600 hover:underline">
+            ⬅ 홈으로 돌아가기
+          </button>
+        </div>
       </div>
 
       {showFormula && <ScoreFormulaNotice />}
@@ -66,6 +111,12 @@ export default function RankResultPage() {
       />
 
       <PortfolioList results={data.search_results} />
+
+      <ProductionExampleModal
+        open={exampleOpen}
+        onClose={() => setExampleOpen(false)}
+        text={exampleText}
+      />
     </div>
   );
 }
@@ -116,7 +167,7 @@ function ScoreFormulaNotice() {
   return (
     <section className="bg-yellow-50 border-l-4 border-yellow-400 p-4 text-sm text-gray-800 rounded space-y-4">
       <p className="font-semibold mb-1">📊 점수 산정 방식</p>
-      <p>최종 점수는 다음 요소별 유사도에 아래 가중치를 곱해 합산하여 계산됩니다:</p>
+      <p>최종 점수는 요소별 유사도에 아래 가중치를 곱해 합산합니다:</p>
       <pre className="mt-2 text-gray-700 font-mono text-sm bg-white p-2 rounded overflow-x-auto">
 {`final_score = 
   full_score × 1.0 + 
@@ -125,46 +176,6 @@ function ScoreFormulaNotice() {
   how_score × 0.2 + 
   style_score × 0.5`}
       </pre>
-
-      <p className="font-semibold mb-1">🎯 요소 설명</p>
-      <div className="overflow-x-auto mt-2">
-        <table className="table-auto w-full text-left text-sm border border-gray-200 bg-white">
-          <thead className="bg-gray-100 text-gray-700">
-            <tr>
-              <th className="px-4 py-2 border-b">요소</th>
-              <th className="px-4 py-2 border-b">설명</th>
-              <th className="px-4 py-2 border-b">유사도 방식</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="px-4 py-2 border-b font-medium">full</td>
-              <td className="px-4 py-2 border-b">desc/what/how/style을 하나로 합친 전체 문장</td>
-              <td className="px-4 py-2 border-b">SBERT → 코사인 유사도</td>
-            </tr>
-            <tr>
-              <td className="px-4 py-2 border-b font-medium">desc</td>
-              <td className="px-4 py-2 border-b">요청 광고의 한 문장 요약</td>
-              <td className="px-4 py-2 border-b">SBERT → 코사인 유사도</td>
-            </tr>
-            <tr>
-              <td className="px-4 py-2 border-b font-medium">what</td>
-              <td className="px-4 py-2 border-b">무엇을 광고하는지(중분류, 한 단어)</td>
-              <td className="px-4 py-2 border-b">fastText 평균 → 코사인</td>
-            </tr>
-            <tr>
-              <td className="px-4 py-2 border-b font-medium">how</td>
-              <td className="px-4 py-2 border-b">어떤 방식/매체/도구로 광고하는지</td>
-              <td className="px-4 py-2 border-b">SBERT → 코사인 유사도</td>
-            </tr>
-            <tr>
-              <td className="px-4 py-2 font-medium">style</td>
-              <td className="px-4 py-2">광고의 톤/연출 스타일(한 단어)</td>
-              <td className="px-4 py-2">SBERT → 코사인 유사도</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </section>
   );
 }
@@ -175,10 +186,7 @@ function PortfolioList({ results }: { results: SearchResultV3[] }) {
       <h2 className="text-2xl font-bold mb-4">📈 추천 포트폴리오 (Top {results.length})</h2>
       <div className="space-y-6">
         {results.map((ptfo, idx) => (
-          <div
-            key={ptfo.ptfo_seqno}
-            className="border border-gray-200 p-4 rounded-lg shadow-sm bg-white"
-          >
+          <div key={ptfo.ptfo_seqno} className="border border-gray-200 p-4 rounded-lg shadow-sm bg-white">
             <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
               <span># {idx + 1}</span>
               <span>Score: {ptfo.final_score.toFixed(2)}</span>
@@ -207,11 +215,12 @@ function PortfolioList({ results }: { results: SearchResultV3[] }) {
 
             {(ptfo.prdn_cost || ptfo.prdn_perd) && (
               <div className="text-sm text-gray-600 mt-1">
-                {ptfo.prdn_cost && <>제작비: {ptfo.prdn_cost.toLocaleString()} </>}
+                {typeof ptfo.prdn_cost === "number" && <>제작비: {ptfo.prdn_cost.toLocaleString()} </>}
                 {ptfo.prdn_perd && <span className="ml-2">제작기간: {ptfo.prdn_perd}</span>}
               </div>
             )}
 
+            {/* 점수 표 */}
             <table className="table-auto w-full text-sm text-left mt-4 border border-gray-200">
               <thead className="bg-gray-100">
                 <tr>
@@ -246,10 +255,7 @@ function PortfolioList({ results }: { results: SearchResultV3[] }) {
 
             <div className="mt-2 flex flex-wrap gap-2">
               {ptfo.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full"
-                >
+                <span key={tag} className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
                   {tag}
                 </span>
               ))}
