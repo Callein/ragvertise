@@ -1,4 +1,6 @@
 import os
+import time
+from collections import deque
 import pickle
 import numpy as np
 import faiss
@@ -18,9 +20,41 @@ logger = get_logger("generate_fused_embeddings_v3")
 
 FACTOR_ORDER = ["full", "desc", "what", "how", "style"]
 
+
 def _l2norm(x: np.ndarray, eps: float = 1e-8) -> np.ndarray:
     norms = np.linalg.norm(x, axis=1, keepdims=True)
     return x / (norms + eps)
+
+
+class RateLimiter:
+    """
+    분당 요청 한도를 지키기 위한 간단한 레이트 리미터 (싱글스레드용).
+    - 최근 60초 내 호출 타임스탬프를 관리하고 한도를 초과하면 대기
+    """
+    def __init__(self, rpm: int):
+        self.rpm = max(1, int(rpm))
+        self.window = deque()  # 최근 호출 시각(초) 큐
+
+    def wait(self):
+        now = time.time()
+        # 60초 윈도우 밖의 기록 제거
+        while self.window and now - self.window[0] > 60.0:
+            self.window.popleft()
+
+        if len(self.window) >= self.rpm:
+            # 가장 오래된 호출과의 차이를 기준으로 남은 시간만큼 대기
+            sleep_for = 60.0 - (now - self.window[0]) + 0.01
+            if sleep_for > 0:
+                logger.info(f"[RateLimiter] RPM 한도 도달. {sleep_for:.2f}s 대기")
+                time.sleep(sleep_for)
+            # 대기 후 창을 다시 정리
+            now = time.time()
+            while self.window and now - self.window[0] > 60.0:
+                self.window.popleft()
+
+        # 이번 호출 기록
+        self.window.append(time.time())
+
 
 def build_fused_faiss_indices_v3():
     """
@@ -44,20 +78,31 @@ def build_fused_faiss_indices_v3():
     }
     sqrt_w = {k: np.sqrt(v).astype(np.float32) for k, v in weights.items()}
 
+    # --- 레이트 리미터 설정 (LLM 호출 전용) ---
+    rpm = int(getattr(ModelConfig, "LLM_RPM",
+              getattr(ModelConfig, "GEMINI_API_REQUESTS_PER_MINUTE", 60)))
+    limiter = RateLimiter(rpm=rpm)
+    logger.info(f"[RateLimiter] 활성화: {rpm} req/min")
+
     factor_texts = {f: [] for f in FACTOR_ORDER}
     records = []
 
-    for data in data_list:
-        # 메타 필드: MV(또는 info)에서 끌어온 값을 사용
-        view_url     = data.get("VIEW_LNK_URL")
-        studio_name  = data.get("PRDN_STDO_NM")
-        prod_cost    = data.get("PRDN_COST")
-        prod_period  = data.get("PRDN_PERD")
+    for idx, data in enumerate(data_list, start=1):
+        # 메타 필드
+        view_url    = data.get("VIEW_LNK_URL")
+        studio_name = data.get("PRDN_STDO_NM")
+        prod_cost   = data.get("PRDN_COST")
+        prod_period = data.get("PRDN_PERD")
+
+        # ---- LLM 호출 전 RPM 대기 ----
+        limiter.wait()
 
         input_text = f"제목: {data['PTFO_NM']}. 설명: {data['PTFO_DESC']}. 태그: {', '.join(data['tags'])}"
         factors = ad_element_extractor_service_single_ton.extract_elements(
             AdElementDTOV2.AdElementRequest(user_prompt=input_text)
         )
+        logger.info(f"[elements] {idx}/{len(data_list)} seq={data['PTFO_SEQNO']} -> "
+                    f"desc='{factors.desc}', what='{factors.what}', how='{factors.how}', style='{factors.style}'")
 
         # 개별 factor 텍스트
         for f in ["desc", "what", "how", "style"]:
@@ -66,7 +111,7 @@ def build_fused_faiss_indices_v3():
         full_text = f"desc: {factors.desc}. what: {factors.what}. how: {factors.how}. style: {factors.style}"
         factor_texts["full"].append(cleaner.clean(full_text))
 
-        # artifacts에 저장할 레코드(검색 응답에서 메타 노출용)
+        # artifacts에 저장할 레코드
         records.append({
             "PTFO_SEQNO":   data["PTFO_SEQNO"],
             "PTFO_NM":      data["PTFO_NM"],
@@ -105,10 +150,9 @@ def build_fused_faiss_indices_v3():
         else:
             embs = embedding_model.encode(texts, convert_to_numpy=True).astype(np.float32)
 
-        embs = _l2norm(np.ascontiguousarray(embs))  # L2 정규화
+        embs = _l2norm(np.ascontiguousarray(embs))
         factor_embs[f] = embs
 
-        # factor별 파일 저장 (메타 포함)
         with open(os.path.join(artifacts_dir, f"{f}_embeddings.pkl"), "wb") as pf:
             pickle.dump({"embeddings": embs, "data": records}, pf)
 
@@ -118,8 +162,8 @@ def build_fused_faiss_indices_v3():
         logger.info(f"[V3-FUSED] {f} index ntotal={idx.ntotal}")
 
     # √가중치 스케일 + CONCAT → fused 임베딩
-    scaled = [factor_embs[f] * sqrt_w[f] for f in FACTOR_ORDER]  # 각 (N, d_f)
-    fused = np.concatenate(scaled, axis=1).astype(np.float32)    # (N, sum d_f)
+    scaled = [factor_embs[f] * sqrt_w[f] for f in FACTOR_ORDER]
+    fused = np.concatenate(scaled, axis=1).astype(np.float32)
 
     # fused 인덱스 저장
     fused_index = faiss.IndexFlatIP(fused.shape[1])
