@@ -1,11 +1,8 @@
 from typing import List, Optional
 from pydantic import BaseModel
 
+from app.schemas.v3.studio_stat import StudioStat
 
-class StudioStat(BaseModel):
-    name: str
-    count: int
-    ratio: float
 
 class Generated(BaseModel):
     desc: str
