@@ -1,16 +1,24 @@
 import axios from "axios";
+import type {
+  RankResponseV3,
+  SearchResultV3,
+  ProductionExampleRequest,
+  ProductionExampleResponse,
+} from "@/types/production";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+
 const http = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15_000,
 });
 
-// 요소 추출 (v3 경로 권장)
+// 요소 추출 (v3)
 export async function extractAdElements(userPrompt: string) {
-  const { data } = await http.post("/api/v3/ad-element/extract", {
-    user_prompt: userPrompt,
-  });
+  const { data } = await http.post<{ desc: string; what: string; how: string; style: string }>(
+    "/api/v3/ad-element/extract",
+    { user_prompt: userPrompt }
+  );
   return data;
 }
 
@@ -20,46 +28,34 @@ export interface AdElementsRequest {
   how: string;
   style: string;
   diversity?: boolean;
-  limit?: number; // 선택적
+  limit?: number;
 }
 
-// === v3 응답 타입 ===
-export interface SearchResultV3 {
-  ptfo_seqno: number;
-  ptfo_nm: string;
-  ptfo_desc: string;
-
-  final_score: number;
-
-  desc: string;
-  desc_score: number;
-  what: string;
-  what_score: number;
-  how: string;
-  how_score: number;
-  style: string;
-  style_score: number;
-
-  tags: string[];
-
-  // 새 메타
-  view_lnk_url?: string | null;
-  prdn_stdo_nm?: string | null;
-  prdn_cost?: number | null;
-  prdn_perd?: string | null;
-}
-
-export interface RankResponseV3 {
-  generated: { desc: string; what: string; how: string; style: string };
-  search_results: SearchResultV3[];
-  top_studios: { name: string; count: number; ratio: number }[]; // NEW
-  candidate_size: number; // NEW
-}
-
-export async function getRankedPortfoliosByAdElements(payload: AdElementsRequest) {
+// V3 랭킹
+export async function getRankedPortfoliosByAdElements(
+  payload: AdElementsRequest
+): Promise<RankResponseV3> {
   const { data } = await http.post<RankResponseV3>(
     "/api/v3/rank/portfolios/by-ad-elements",
     payload
   );
   return data;
 }
+
+// 작업지시서 예시 생성
+export async function createProductionExample(
+  payload: ProductionExampleRequest
+): Promise<ProductionExampleResponse> {
+  const { data } = await http.post<ProductionExampleResponse>(
+    "/api/v3/production_example/generate",
+    payload
+  );
+  return data;
+}
+
+export type {
+  RankResponseV3,
+  SearchResultV3,
+  ProductionExampleRequest,
+  ProductionExampleResponse,
+};
