@@ -4,12 +4,8 @@ from pydantic import BaseModel
 
 from app.schemas.v2.ad_element_extractor_dto import AdElementDTOV2
 from app.schemas.v3.search_dto import SearchDTOV3
+from app.schemas.v3.studio_stat import StudioStat
 
-
-class StudioStat(BaseModel):
-    name: str
-    count: int
-    ratio: float
 
 class RankDTOV3:
     class GetRankPtfoRequest(BaseModel):
