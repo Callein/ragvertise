@@ -7,6 +7,7 @@ router = APIRouter()
 @router.post("/extract", response_model=AdElementDTOV2.AdElementResponse)
 async def extract_ad_elements(req: AdElementDTOV2.AdElementRequest):
     try:
-        return AdElementExtractorServiceV2.extract_elements(req)
+        ad_element_extractor_service_v2 = AdElementExtractorServiceV2()
+        return ad_element_extractor_service_v2.extract_elements(req)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

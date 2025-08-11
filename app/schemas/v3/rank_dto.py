@@ -6,6 +6,11 @@ from app.schemas.v2.ad_element_extractor_dto import AdElementDTOV2
 from app.schemas.v3.search_dto import SearchDTOV3
 
 
+class StudioStat(BaseModel):
+    name: str
+    count: int
+    ratio: float
+
 class RankDTOV3:
     class GetRankPtfoRequest(BaseModel):
         user_prompt: str
@@ -20,6 +25,8 @@ class RankDTOV3:
     class GetRankPtfoResponse(BaseModel):
         generated: AdElementDTOV2.AdElementResponse
         search_results: List[SearchDTOV3.SearchResponse]
+        top_studios: List[StudioStat]
+        candidate_size: int
 
     class GetRankPtfoByAdElementsRequest(BaseModel):
         desc: str
