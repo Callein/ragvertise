@@ -1,7 +1,7 @@
 # RAGvertise
 English | [한국어](./README_KOR.md)
 
-![KTL Certified](https://img.shields.io/badge/KTL-Certified-success) ![Latency-2.66s](https://img.shields.io/badge/Latency-2.66s-informational) ![ROUGE1F1-0.91](https://img.shields.io/badge/ROUGE--1%20F1-0.91-blue)  
+![License](https://img.shields.io/badge/License-Apache--2.0-red.svg) ![KTL Certified](https://img.shields.io/badge/KTL-Certified-success) ![Latency-2.66s](https://img.shields.io/badge/Latency-2.66s-informational) ![ROUGE1F1-0.91](https://img.shields.io/badge/ROUGE--1%20F1-0.91-blue)  
 
 ## 📑 Table of Contents
 
