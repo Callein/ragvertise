@@ -1,9 +1,5 @@
 # RAGvertise
-![KTL Certified](https://img.shields.io/badge/KTL-Certified-success)
-
-![Latency-2.66s](https://img.shields.io/badge/Latency-2.66s-informational)
-
-![ROUGE1F1-0.91](https://img.shields.io/badge/ROUGE--1%20F1-0.91-blue)  
+![KTL Certified](https://img.shields.io/badge/KTL-Certified-success) ![Latency-2.66s](https://img.shields.io/badge/Latency-2.66s-informational) ![ROUGE1F1-0.91](https://img.shields.io/badge/ROUGE--1%20F1-0.91-blue)  
 
 ## 📑 목차
 
@@ -40,7 +36,8 @@ FAISS 벡터 검색을 통해 유사 포트폴리오와 광고 업체를 랭킹�
 추가로, 생성형 AI를 활용해 광고 작업지시서 예시를 자동 생성하는 기능을 제공합니다.
 
 > 이 프로젝트는 **한국산업기술시험원(KTL) 공식 성능 평가(19p 성적서)**를 획득했으며, 주요 결과와 환경은 [**6. KTL 시험 성적 요약**](#6-ktl-시험-성적-요약)에서 확인할 수 있습니다.
-> 
+
+
 <a id="2-설치-및-초기-설정"></a>
 ## 2️⃣ 설치 및 초기 설정
 <a id="21-필수-요구사항"></a>
