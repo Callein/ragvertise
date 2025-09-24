@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from app.schemas.v1.rank_dto import RankDTO
 from app.services.v1.generate_service import GenerateService
 from app.services.v1.search_service import SearchService

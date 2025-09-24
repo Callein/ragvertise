@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 export type Tag = string;
 
 export interface Generated {
@@ -59,4 +60,10 @@ export interface ProductionExampleRequest {
 
 export interface ProductionExampleResponse {
   example: string;
+}
+
+export interface TopStudioStat {
+  name: string;
+  count: number;
+  ratio: number;
 }

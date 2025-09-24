@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 from sqlalchemy.orm import Session
 
 from app.models.ptfo_tag_merged import PtfoTagMerged

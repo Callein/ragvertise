@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 import ollama
 
 from app.schemas.v1.generate_dto import GenerateDTO

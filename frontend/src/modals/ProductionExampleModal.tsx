@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // src/modals/ProductionExampleModal.tsx
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";

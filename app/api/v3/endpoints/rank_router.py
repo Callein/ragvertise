@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from fastapi import APIRouter, HTTPException
 from app.schemas.v3.rank_dto import RankDTOV3
 from app.services.v3.rank_service import RankServiceV3

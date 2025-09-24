@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from app.core.config import RankConfig
 from app.preprocess.text_cleaner import TextCleaner
 from app.schemas.v2.ad_element_extractor_dto import AdElementDTOV2

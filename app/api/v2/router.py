@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from fastapi import APIRouter
 from app.api.v2.endpoints import ad_element_extractor_router, rank_router
 
