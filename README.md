@@ -28,7 +28,6 @@ English | [한국어](./README_KOR.md)
   - [5️⃣ Frontend Guide](#5️⃣-frontend-guide)
     - [📌 5.1 Prerequisites](#-51-prerequisites)
     - [📌 5.2 Clone \& Install Dependencies](#-52-clone--install-dependencies)
-- [Install packages](#install-packages)
     - [📌 5.3 Environment Variables](#-53-environment-variables)
     - [📌 5.4 Run Dev Server](#-54-run-dev-server)
     - [📌 5.5 Build \& Deployment](#-55-build--deployment)
@@ -505,13 +504,11 @@ Port is `9000`.
 
 <a id="52-clone-and-install-dependencies"></a>
 ### 📌 5.2 Clone & Install Dependencies
+
 ```bash
 # Move to the frontend directory
 cd frontend
-```
-
 # Install packages
-```bash
 npm install
 # or
 yarn install
