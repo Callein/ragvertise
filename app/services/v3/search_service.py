@@ -17,7 +17,7 @@ from app.models.ptfo_tag_merged import PtfoTagMerged
 
 class SearchServiceV3:
     """
-    - 부팅 시 1회 로드(싱글턴): fused_index / factor embeddings / records / weights / tag mapping
+    - 부팅 시 1회 로드(싱글톤): fused_index / factor embeddings / records / weights / tag mapping
     - 요청 시: fused 인덱스에서 후보 M 검색 → 후보에 한해 factor별 점수 및 최종 점수 계산
     - diversity=true면 후보 M을 더 넉넉히 가져와 MMR로 재랭킹
     - 필요 시 스튜디오 통계(PRDN_STDO_NM) 집계까지 반환
@@ -101,7 +101,7 @@ class SearchServiceV3:
         q_fused = np.concatenate(scaled, axis=1).astype(np.float32)
         return q_fused, q
 
-    # ---------- 펄블락 검색 ----------
+    # ---------- 퍼블릭 검색 ----------
     def search(
         self,
         request: SearchDTOV3.SearchRequest,
