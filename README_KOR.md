@@ -1,9 +1,10 @@
 # RAGvertise
 한국어 | [English](./README.md)
+
 ![KTL Certified](https://img.shields.io/badge/KTL-Certified-success) ![Latency-2.66s](https://img.shields.io/badge/Latency-2.66s-informational) ![ROUGE1F1-0.91](https://img.shields.io/badge/ROUGE--1%20F1-0.91-blue)  
 
 ## 📑 목차
-
+****
 - [RAGvertise](#ragvertise)
   - [📑 목차](#-목차)
   - [1️⃣ 프로젝트 개요](#1️⃣-프로젝트-개요)
@@ -21,6 +22,12 @@
     - [🔹 4.1 모델 테스트 API V1 (POST /api/test/generate)](#-41-모델-테스트-api-v1-post-apitestgenerate)
     - [🔹 4.2 포트폴리오 랭크 리스트 생성 API V1 (POST /api/rank/ptfo)](#-42-포트폴리오-랭크-리스트-생성-api-v1-post-apirankptfo)
       - [Request Body](#request-body)
+      - [3. Request Body](#3-request-body)
+      - [4. Response 예시](#4-response-예시)
+      - [5. Response Body](#5-response-body)
+  - [5️⃣ 프런트엔드 실행 가이드](#5️⃣-프런트엔드-실행-가이드)
+    - [📌 5.1 필수 요구사항](#-51-필수-요구사항)
+    - [📌 5.2 프로젝트 클론 및 의존성 설치](#-52-프로젝트-클론-및-의존성-설치)
     - [📌 5.3 환경 변수 설정](#-53-환경-변수-설정)
     - [📌 5.4 개발 서버 실행](#-54-개발-서버-실행)
     - [📌 5.5 빌드 및 배포](#-55-빌드-및-배포)
@@ -55,10 +62,11 @@ FAISS 벡터 검색을 통해 유사 포트폴리오와 광고 업체를 랭킹�
 
 <a id="22-프로젝트-클론-및-가상-환경-설정"></a>
 ### 📌 2.2 프로젝트 클론 및 가상 환경 설정
+
 ```shell
 # 프로젝트 클론
-git clone https://github.com/Callein/ragvertise_prototype.git
-cd ragvertise_prototype
+git clone https://github.com/Callein/ragvertise.git
+cd ragvertise
 
 # 가상환경 생성 및 활성화
 python -m venv .venv
@@ -76,7 +84,8 @@ pip install -r requirements.txt
 
 <a id="24-ollama-설치-및-모델-다운로드"></a>
 ### 📌 2.4 Ollama 설치 및 모델 다운로드
-> Gemini 만 사용시에는 ollama까지 설치하실 필요는 없습니다.
+> Gemini 만 사용시에는 ollama 까지 설치하실 필요는 없습니다.
+
 ```shell
 # Ollama 설치 (Mac)
 brew install --cask ollama
@@ -104,15 +113,16 @@ ollama pull mistral
   ```
 #### 2) 프로젝트 내 경로 배치
 - .env 파일 또는 설정에서 WORD_EMBEDDING_MODEL_PATH 항목에 해당 모델 경로를 지정
-```env
-WORD_EMBEDDING_MODEL_PATH=./models/cc.ko.300.bin
-```
+  ```env
+  WORD_EMBEDDING_MODEL_PATH=./models/cc.ko.300.bin
+  ```
 #### 3) 주의사항
 - fastText .bin 파일은 용량이 크므로 Git에 포함하지 말고 .gitignore에 등록하세요.
 - 모델 경로가 잘못되면 임베딩 생성 시 FileNotFoundError가 발생합니다.
 
 <a id="3-fastapi-서버-실행"></a>
 ## 3️⃣ FastAPI 서버 실행
+
 ```shell
 # 단순 실행
 python main.py
@@ -129,6 +139,7 @@ Port는 `9000` 입니다.
 <a id="41-모델-테스트-api-v1-post-apitestgenerate"></a>
 ### 🔹 4.1 모델 테스트 API V1 (POST /api/test/generate)
 - **Request 예시**
+  
     ```json
     {
         "system_prompt": "persona: 너는 최고의 광고 카피를 만드는 AI야.\n instruction: 모든 답은 한국어로 해.",
@@ -136,6 +147,7 @@ Port는 `9000` 입니다.
     }
     ```
     #### Request Body
+
     | 필드명         | 타입     | 필수 여부 | 설명               |
     |--------------|--------|---------|------------------|
     | `system_prompt` | `string` | ✅       | 모델의 역할이나 지침을 전달하는 필드 |
@@ -157,7 +169,7 @@ Port는 `9000` 입니다.
             "system_prompt": "persona: 너는 최고의 광고 전문가야.\n instruction: \n - 모든 답은 한국어로 해.\n- 답변 방식은 JSON 형식으로. 필드는 다음과 같다. \"tags\" : 입력된 텍스트에서 광고 관련 핵심 태그를 추출, \"summary\": 입력된 텍스트 요약",
             "user_prompt": "나는 남자 아이돌들이 춤을 추며 홍보하는 광고 스타일의 영상을 찍고 싶어 클렌징 폼을 홍보하기 위해 남자 아이돌이 춤을 추며 자리에서 뛰었을때 클랜징 폼의 거품이 나는 듯한 광고를 찍은 비슷한 광고를 추천해줘"
         }
-        ```
+      ```
   - Response
       ```json
       {
@@ -167,7 +179,9 @@ Port는 `9000` 입니다.
 
 <a id="42-포트폴리오-랭크-리스트-생성-api-v1-post-apirankptfo"></a>
 ### 🔹 4.2 포트폴리오 랭크 리스트 생성 API V1 (POST /api/rank/ptfo)
+
   > 이 API는 사용자의 광고 촬영 요청(또는 관련 아이디어)을 바탕으로 포트폴리오(광고 제작 사례) 리스트의 순위를 산출합니다.
+
   1. **LLM 요약 및 태그 생성**  
      - 사용자가 입력한 광고 요청 텍스트와 미리 정의된 시스템 프롬프트와 함께 LLM(현재 Mistral 모델 사용)에 요청을 보냅니다.
      - 이를 통해 광고 요청에 대한 요약(`summary`)과 관련 광고 카테고리 태그(`tags`)를 추출합니다.
@@ -188,7 +202,7 @@ Port는 `9000` 입니다.
            
        - **최종 점수 산출**  
          텍스트 유사도와 태그 유사도에 각각 가중치(alpha, beta)를 부여하여 최종 점수를 계산합니다.
-         ```
+         ```text
          최종 점수 = (alpha * 텍스트 유사도) + (beta * 태그 유사도)
          ```
      - **결과 생성 및 정렬**  
@@ -202,6 +216,7 @@ Port는 `9000` 입니다.
   }
   ```
   #### Request Body
+
     | 필드명      | 타입   | 필수 여부 | 설명                                          |
     |-------------|--------|-----------|-----------------------------------------------|
     | user_prompt | string | ✅         | 사용자의 광고 촬영 요청 혹은 관련 아이디어를 담은 텍스트 |
@@ -255,6 +270,7 @@ Port는 `9000` 입니다.
 
 <a id="43-포트폴리오-랭크-리스트-생성-api-v3-post-apiv3rankportfoliosby-ad-elements"></a>
 ### 🔹 4.3 포트폴리오 랭크 리스트 생성 API V3 (POST /api/v3/rank/portfolios/by-ad-elements)
+
 > 이 API는 사용자가 직접 입력한 광고 요청(혹은 추출된 광고 요소 데이터)을 기반으로, 포트폴리오(광고 제작 사례) 리스트의 순위를 산출합니다.  
 > V2와 달리 V3는 `desc`, `what`, `how`, `style` 네 가지 광고 요소를 기반으로 세분화된 유사도 점수를 계산하며, fastText와 SBERT를 혼합 사용합니다.
 
@@ -298,6 +314,7 @@ Port는 `9000` 입니다.
     ```
 
 #### Request Body
+
 | 필드명       | 타입    | 필수 여부 | 설명                                         |
 |--------------|--------|-----------|----------------------------------------------|
 | desc         | string | ✅         | 광고를 한 문장으로 요약한 설명               |
@@ -408,42 +425,43 @@ Port는 `9000` 입니다.
 ---
 
 #### 2. Request 예시
-    ```json
+
+```json
+{
+  "generated": {
+    "desc": "여성 건강을 위한 Y존 케어를 돕는 유산균 제품의 따뜻하고 편안한 이미지를 담은 광고.",
+    "what": "건강",
+    "how": "영상",
+    "style": "친근함"
+  },
+  "search_results": [
     {
-      "generated": {
-        "desc": "여성 건강을 위한 Y존 케어를 돕는 유산균 제품의 따뜻하고 편안한 이미지를 담은 광고.",
-        "what": "건강",
-        "how": "영상",
-        "style": "친근함"
-      },
-      "search_results": [
-        {
-          "final_score": 3.48,
-          "full_score": 0.93,
-          "desc_score": 0.86,
-          "what_score": 1.0,
-          "how_score": 0.79,
-          "style_score": 0.76,
-          "desc": "y존 케어 제품의 특징을 보여주는 젤 타입 쇼츠 영상",
-          "what": "건강",
-          "how": "숏폼",
-          "style": "정보전달",
-          "ptfo_seqno": 1012,
-          "ptfo_nm": "닿기를 젤 타입 쇼츠",
-          "ptfo_desc": "유산균 Y존 케어 제품 닿기를 젤 타입 쇼츠 영상입니다.",
-          "tags": ["홍보영상", "기록/정보전달", "브랜딩", "숏폼", "제품/기술"],
-          "view_lnk_url": "https://...",
-          "prdn_stdo_nm": "Calmpictures",
-          "prdn_cost": null,
-          "prdn_perd": "2주"
-        }
-      ],
-      "top_studios": [
-        { "name": "Calmpictures", "count": 3, "ratio": 0.3 }
-      ],
-      "candidate_size": 10
+      "final_score": 3.48,
+      "full_score": 0.93,
+      "desc_score": 0.86,
+      "what_score": 1.0,
+      "how_score": 0.79,
+      "style_score": 0.76,
+      "desc": "y존 케어 제품의 특징을 보여주는 젤 타입 쇼츠 영상",
+      "what": "건강",
+      "how": "숏폼",
+      "style": "정보전달",
+      "ptfo_seqno": 1012,
+      "ptfo_nm": "닿기를 젤 타입 쇼츠",
+      "ptfo_desc": "유산균 Y존 케어 제품 닿기를 젤 타입 쇼츠 영상입니다.",
+      "tags": ["홍보영상", "기록/정보전달", "브랜딩", "숏폼", "제품/기술"],
+      "view_lnk_url": "https://...",
+      "prdn_stdo_nm": "Calmpictures",
+      "prdn_cost": null,
+      "prdn_perd": "2주"
     }
-    ```
+  ],
+  "top_studios": [
+    { "name": "Calmpictures", "count": 3, "ratio": 0.3 }
+  ],
+  "candidate_size": 10
+}
+```
 #### 3. Request Body
 
 | 필드명           | 타입     | 필수 | 설명 |
@@ -476,11 +494,11 @@ Port는 `9000` 입니다.
 | `candidate_size` | number   | ✅ | 후보 개수 |
 
 #### 4. Response 예시
-    ```json
-    {
-      "example": "제작 목적: 여성 건강을 위한 Y존 케어 유산균 제품의 브랜드 인지도 향상 및 구매 유도.\n\n광고 콘셉트: 따뜻하고 편안한 분위기 속에서 제품의 효능과 사용법을 자연스럽게 전달.\n\n제작 형식: 영상 (숏폼 및 중·장편 혼합)\n\n스타일: 친근하고 편안한 연출, 일상 속에서 자연스럽게 스며드는 장면 구성.\n\n참고 포트폴리오:\n1. 메큐릭 닿기를 젤 타입 쇼츠 - Calmpictures (https://player.vimeo.com/video/878209021)\n2. 메큐릭 닿기를 스프레이형 쇼츠 - Calmpictures (https://player.vimeo.com/video/878208992)\n3. 무앤유 - 봉랩 (https://player.vimeo.com/video/859290615)\n\n제작 조건:\n- 주요 타겟: 20~40대 여성\n- 촬영 장소: 따뜻하고 아늑한 실내 공간\n- 제작 기간: 2주~1개월\n- 필요 인력: 모델(여성), 촬영감독, 조명감독, 편집자\n\n예상 제작비: 스튜디오별 제안서 참고"
-    }
-    ```
+```json
+{
+  "example": "제작 목적: 여성 건강을 위한 Y존 케어 유산균 제품의 브랜드 인지도 향상 및 구매 유도.\n\n광고 콘셉트: 따뜻하고 편안한 분위기 속에서 제품의 효능과 사용법을 자연스럽게 전달.\n\n제작 형식: 영상 (숏폼 및 중·장편 혼합)\n\n스타일: 친근하고 편안한 연출, 일상 속에서 자연스럽게 스며드는 장면 구성.\n\n참고 포트폴리오:\n1. 메큐릭 닿기를 젤 타입 쇼츠 - Calmpictures (https://player.vimeo.com/video/878209021)\n2. 메큐릭 닿기를 스프레이형 쇼츠 - Calmpictures (https://player.vimeo.com/video/878208992)\n3. 무앤유 - 봉랩 (https://player.vimeo.com/video/859290615)\n\n제작 조건:\n- 주요 타겟: 20~40대 여성\n- 촬영 장소: 따뜻하고 아늑한 실내 공간\n- 제작 기간: 2주~1개월\n- 필요 인력: 모델(여성), 촬영감독, 조명감독, 편집자\n\n예상 제작비: 스튜디오별 제안서 참고"
+}
+```
 
 #### 5. Response Body
 
@@ -500,6 +518,7 @@ Port는 `9000` 입니다.
 
 <a id="52-프로젝트-클론-및-의존성-설치"></a>
 ### 📌 5.2 프로젝트 클론 및 의존성 설치
+
 ```bash
 # frontend 디렉토리로 이동
 cd frontend
@@ -516,9 +535,10 @@ pnpm install
 ### 📌 5.3 환경 변수 설정
 
 - frontend/.env 파일을 생성하고 백엔드 URL을 기입합니다.
-```env
-VITE_API_BASE_URL=http://localhost:9000
-```
+  
+  ```env
+  VITE_API_BASE_URL=http://localhost:9000
+  ```
 
 <a id="54-개발-서버-실행"></a>
 ### 📌 5.4 개발 서버 실행

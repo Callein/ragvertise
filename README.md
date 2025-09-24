@@ -1,5 +1,6 @@
 # RAGvertise
 English | [한국어](./README_KOR.md)
+
 ![KTL Certified](https://img.shields.io/badge/KTL-Certified-success) ![Latency-2.66s](https://img.shields.io/badge/Latency-2.66s-informational) ![ROUGE1F1-0.91](https://img.shields.io/badge/ROUGE--1%20F1-0.91-blue)  
 
 ## 📑 Table of Contents
@@ -27,6 +28,7 @@ English | [한국어](./README_KOR.md)
   - [5️⃣ Frontend Guide](#5️⃣-frontend-guide)
     - [📌 5.1 Prerequisites](#-51-prerequisites)
     - [📌 5.2 Clone \& Install Dependencies](#-52-clone--install-dependencies)
+- [Install packages](#install-packages)
     - [📌 5.3 Environment Variables](#-53-environment-variables)
     - [📌 5.4 Run Dev Server](#-54-run-dev-server)
     - [📌 5.5 Build \& Deployment](#-55-build--deployment)
@@ -63,8 +65,8 @@ It also provides automatic generation of production brief examples using generat
 ### 📌 2.2 Project Clone & Virtual Environment Setup
 ```shell
 # Clone the project
-git clone https://github.com/Callein/ragvertise_prototype.git
-cd ragvertise_prototype
+git clone https://github.com/Callein/ragvertise.git
+cd ragvertise
 
 # Create and activate a virtual environment
 python -m venv .venv
@@ -109,9 +111,9 @@ Download the fastText model (`.bin`) in advance and place it at a configured pat
   ```
 #### 2) Place in Project Path
 - Set the model path in `.env` for WORD_EMBEDDING_MODEL_PATH:
-```env
-WORD_EMBEDDING_MODEL_PATH=./models/cc.ko.300.bin
-```
+  ```env
+  WORD_EMBEDDING_MODEL_PATH=./models/cc.ko.300.bin
+  ```
 #### 3) Notes
 - The fastText `.bin` file is large; do not commit it. Add to `.gitignore`.
 - If the path is wrong, a FileNotFoundError will occur during embedding.
@@ -141,6 +143,7 @@ Port is `9000`.
     }
     ```
     #### Request Body
+
     | Field           | Type    | Required | Description                                 |
     |-----------------|---------|----------|---------------------------------------------|
     | `system_prompt` | `string`| ✅        | Model role/instructions                      |
@@ -204,6 +207,7 @@ Port is `9000`.
   }
   ```
   #### Request Body
+
   | Field       | Type   | Required | Description                                              |
   |-------------|--------|----------|----------------------------------------------------------|
   | user_prompt | string | ✅        | User ad request or idea text                             |
@@ -237,6 +241,7 @@ Port is `9000`.
         ]
     }
   ```
+
   #### Response Body
     
   | Field                | Type   | Description                                                          |
@@ -298,6 +303,7 @@ Port is `9000`.
     ```
 
 #### Request Body
+
 | Field       | Type   | Required | Description                                      |
 |-------------|--------|----------|--------------------------------------------------|
 | desc        | string | ✅        | One-sentence ad description                      |
@@ -502,8 +508,10 @@ Port is `9000`.
 ```bash
 # Move to the frontend directory
 cd frontend
+```
 
 # Install packages
+```bash
 npm install
 # or
 yarn install
@@ -515,9 +523,10 @@ pnpm install
 ### 📌 5.3 Environment Variables
 
 - Create `frontend/.env` and set the backend URL.
-```env
-VITE_API_BASE_URL=http://localhost:9000
-```
+
+  ```env
+  VITE_API_BASE_URL=http://localhost:9000
+  ```
 
 <a id="54-run-dev-server"></a>
 ### 📌 5.4 Run Dev Server
