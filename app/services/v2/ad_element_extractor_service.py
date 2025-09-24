@@ -1,3 +1,4 @@
+import time
 import json
 import re
 import logging
@@ -48,12 +49,16 @@ class AdElementExtractorServiceV2:
 
         for attempt in range(1, self.MAX_RETRIES + 1):
             try:
+                start_time = time.time()
                 if provider == "gemini":
                     response_text = self._gemini.chat_completion(self.SYSTEM_PROMPT, req.user_prompt)
                 elif provider == "ollama":
                     response_text = self._ollama.chat_completion(self.SYSTEM_PROMPT, req.user_prompt)
                 else:
                     raise RuntimeError(f"Unsupported provider: {provider}")
+
+                elapsed = (time.time() - start_time) * 1000
+                logger.info(f"[LLM {provider}] time={elapsed:.2f}ms")
 
                 logger.info(f"[LLM {provider}] attempt={attempt}, response={response_text}")
 
