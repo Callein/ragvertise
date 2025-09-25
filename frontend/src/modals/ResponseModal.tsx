@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {NavigateFunction, useNavigate} from "react-router-dom";

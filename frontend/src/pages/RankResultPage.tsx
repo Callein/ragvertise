@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // src/pages/RankResultPage.tsx
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";

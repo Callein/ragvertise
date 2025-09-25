@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import * as React from 'react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

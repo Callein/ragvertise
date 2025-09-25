@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import './main.css';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 

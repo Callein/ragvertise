@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { useState } from "react";
 import { extractAdElements } from "@/services/api";
 import PromptForm from "../components/PromptForm";
@@ -5,7 +6,8 @@ import ResponseModal from "../modals/ResponseModal";
 
 export default function PromptPage() {
   const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState(null);
+  // 타입 명시: extractAdElements 반환 타입 또는 null
+  const [response, setResponse] = useState<Awaited<ReturnType<typeof extractAdElements>> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 

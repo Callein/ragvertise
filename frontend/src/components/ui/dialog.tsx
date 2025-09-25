@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import * as React from 'react';
 
 export const Dialog: React.FC<{ open: boolean; onOpenChange: (open: boolean) => void; children: React.ReactNode }> = ({

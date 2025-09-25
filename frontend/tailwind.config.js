@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
     "./index.html",
@@ -7,4 +9,4 @@ module.exports = {
     extend: {},
   },
   plugins: [],
-};
+}

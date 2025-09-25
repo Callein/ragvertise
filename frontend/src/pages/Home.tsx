@@ -1,10 +1,12 @@
+// SPDX-License-Identifier: Apache-2.0
 import { useState } from 'react';
 import PromptForm from '@/components/PromptForm';
 import ResultModal from '@/modals/ResponseModal';
 import { extractAdElements } from '@/services/api';
 
 export default function Home() {
-  const [result, setResult] = useState(null);
+  // 타입 명시: extractAdElements 반환 타입 또는 null
+  const [result, setResult] = useState<Awaited<ReturnType<typeof extractAdElements>> | null>(null);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
@@ -16,7 +18,7 @@ export default function Home() {
       const res = await extractAdElements(input);
       setResult(res);
       setIsModalOpen(true);
-    } catch (e) {
+    } catch {
       alert('API 요청 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 from fastapi import APIRouter, HTTPException
 from app.schemas.v2.ad_element_extractor_dto import AdElementDTOV2
 from app.services.v2.ad_element_extractor_service import AdElementExtractorServiceV2
