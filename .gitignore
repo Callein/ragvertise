@@ -3,6 +3,7 @@
 
 # fastText source code
 fastText/
+models/
 
 .env
 
