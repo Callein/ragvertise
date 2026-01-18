@@ -80,7 +80,7 @@ def build_faiss_indices_v2():
         })
 
     # FAISS 인덱스 빌드
-    artifacts_dir = f"../../../artifacts/v2/{ModelConfig.EMBEDDING_MODEL}"
+    artifacts_dir = f"./artifacts/v2/{ModelConfig.EMBEDDING_MODEL}"
     os.makedirs(artifacts_dir, exist_ok=True)
 
     for factor, texts in factor_texts.items():

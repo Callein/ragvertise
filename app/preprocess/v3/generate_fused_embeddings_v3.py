@@ -79,10 +79,16 @@ def build_fused_faiss_indices_v3():
     sqrt_w = {k: np.sqrt(v).astype(np.float32) for k, v in weights.items()}
 
     # --- 레이트 리미터 설정 (LLM 호출 전용) ---
+    is_gemini = (getattr(ModelConfig, "LLM_PROVIDER", "").lower() == "gemini")
     rpm = int(getattr(ModelConfig, "LLM_RPM",
               getattr(ModelConfig, "GEMINI_API_REQUESTS_PER_MINUTE", 60)))
-    limiter = RateLimiter(rpm=rpm)
-    logger.info(f"[RateLimiter] 활성화: {rpm} req/min")
+    
+    limiter = None
+    if is_gemini:
+        limiter = RateLimiter(rpm=rpm)
+        logger.info(f"[RateLimiter] 활성화: {rpm} req/min (Provider: gemini)")
+    else:
+        logger.info(f"[RateLimiter] 비활성화 (Provider: {getattr(ModelConfig, 'LLM_PROVIDER', 'Unknown')})")
 
     factor_texts = {f: [] for f in FACTOR_ORDER}
     records = []
@@ -95,7 +101,8 @@ def build_fused_faiss_indices_v3():
         prod_period = data.get("PRDN_PERD")
 
         # ---- LLM 호출 전 RPM 대기 ----
-        limiter.wait()
+        if limiter:
+            limiter.wait()
 
         input_text = f"제목: {data['PTFO_NM']}. 설명: {data['PTFO_DESC']}. 태그: {', '.join(data['tags'])}"
         factors = ad_element_extractor_service_single_ton.extract_elements(
@@ -129,7 +136,7 @@ def build_fused_faiss_indices_v3():
             "PRDN_PERD":    prod_period,
         })
 
-    artifacts_dir = f"../../../artifacts/v3/{ModelConfig.EMBEDDING_MODEL}"
+    artifacts_dir = f"./artifacts/v3/{ModelConfig.EMBEDDING_MODEL}"
     os.makedirs(artifacts_dir, exist_ok=True)
 
     # factor별 임베딩 생성/정규화
