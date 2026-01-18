@@ -117,6 +117,17 @@ Download the fastText model (`.bin`) in advance and place it at a configured pat
 - The fastText `.bin` file is large; do not commit it. Add to `.gitignore`.
 - If the path is wrong, a FileNotFoundError will occur during embedding.
 
+<a id="26-generate-pre-computed-embeddings"></a>
+### 📌 2.6 Generate Pre-computed Embeddings
+Before running the server, you need to generate fused embeddings for the portfolios.
+Make sure you have configured `.env` and placed the fastText model (`models/cc.ko.300.bin`) correctly.
+
+```shell
+# Generate embeddings (run from project root)
+python -m app.preprocess.v3.generate_fused_embeddings_v3
+```
+> *Note: This script connects to the database to fetch portfolios and uses the LLM/fastText models to create FAISS indices.*
+
 <a id="3-run-fastapi-server"></a>
 ## 3️⃣ Run FastAPI Server
 ```shell
